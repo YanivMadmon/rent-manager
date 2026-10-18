@@ -1,0 +1,376 @@
+// Rent Manager — data model for the full tenancy lifecycle.
+// Money is stored in agorot (Int) to avoid floating point errors.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ───────────────────────────────────────────────
+
+enum TenancyStatus {
+  DRAFT
+  AWAITING_SIGNATURES
+  ACTIVE
+  ENDING
+  CLOSED
+}
+
+enum PartyRole {
+  TENANT
+  GUARANTOR
+  LANDLORD
+}
+
+enum PaymentMethod {
+  CHECK
+  TRANSFER
+  CASH
+}
+
+enum PaymentStatus {
+  EXPECTED
+  PENDING_DEPOSIT
+  DEPOSITED
+  PAID
+  PARTIAL
+  LATE
+  BOUNCED
+}
+
+enum GuaranteeType {
+  PROMISSORY_NOTE
+  BANK_GUARANTEE
+  CASH_DEPOSIT
+  OTHER
+}
+
+enum SignatureStatus {
+  PENDING
+  VIEWED
+  SIGNED
+  DECLINED
+  EXPIRED
+}
+
+enum IssueStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum InspectionKind {
+  MOVE_IN
+  MOVE_OUT
+}
+
+enum UtilityType {
+  ARNONA
+  ELECTRICITY
+  WATER
+  GAS
+}
+
+enum MagicLinkPurpose {
+  SIGN_CONTRACT
+  CONFIRM_PAYMENT
+  REPORT_ISSUE
+  VIEW_CONTRACT
+  APPROVE_INSPECTION
+  UTILITY_PROOF
+}
+
+// ─── Core ────────────────────────────────────────────────
+
+/// A landlord. `id` is the Supabase Auth user id.
+model User {
+  id         String     @id
+  email      String     @unique
+  name       String?
+  phone      String?
+  createdAt  DateTime   @default(now())
+  properties Property[]
+  documents  Document[]
+}
+
+model Property {
+  id        String     @id @default(cuid())
+  ownerId   String
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  address   String
+  city      String
+  block     String? // גוש
+  parcel    String? // חלקה
+  notes     String?
+  createdAt DateTime   @default(now())
+  tenancies Tenancy[]
+  documents Document[]
+
+  @@index([ownerId])
+}
+
+model Tenancy {
+  id               String        @id @default(cuid())
+  propertyId       String
+  property         Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  status           TenancyStatus @default(DRAFT)
+  startDate        DateTime      @db.Date
+  endDate          DateTime      @db.Date
+  monthlyRent      Int // agorot
+  paymentDay       Int           @default(1)
+  hasOption        Boolean       @default(false)
+  optionMonths     Int?
+  isIndexLinked    Boolean       @default(false)
+  baseIndex        Decimal?      @db.Decimal(10, 4)
+  /// Whether the tenancy was imported mid-way (no in-app signing).
+  imported         Boolean       @default(false)
+  previousId       String?       @unique
+  previous         Tenancy?      @relation("Renewal", fields: [previousId], references: [id])
+  renewal          Tenancy?      @relation("Renewal")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  parties           Party[]
+  contracts         Contract[]
+  guarantees        Guarantee[]
+  payments          Payment[]
+  indexUpdates      IndexUpdate[]
+  issues            Issue[]
+  inspections       Inspection[]
+  utilityTransfers  UtilityTransfer[]
+  depositSettlement DepositSettlement?
+  timeline          TimelineEvent[]
+  documents         Document[]
+  magicLinks        MagicLink[]
+
+  @@index([propertyId])
+}
+
+model Party {
+  id         String             @id @default(cuid())
+  tenancyId  String
+  tenancy    Tenancy            @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  role       PartyRole
+  fullName   String
+  idNumber   String? // ת"ז
+  phone      String
+  email      String?
+  signatures SignatureRequest[]
+
+  @@index([tenancyId])
+}
+
+// ─── Contract & signing ──────────────────────────────────
+
+model Contract {
+  id              String             @id @default(cuid())
+  tenancyId       String
+  tenancy         Tenancy            @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  originalPath    String // storage path of the uploaded PDF
+  signedPath      String? // final PDF incl. signature certificate
+  sha256          String? // hash of the final signed PDF
+  /// Signature field placements: [{ partyId, page, x, y, w, h }]
+  fields          Json               @default("[]")
+  completedAt     DateTime?
+  createdAt       DateTime           @default(now())
+  signatureRequests SignatureRequest[]
+
+  @@index([tenancyId])
+}
+
+model SignatureRequest {
+  id           String          @id @default(cuid())
+  contractId   String
+  contract     Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  partyId      String
+  party        Party           @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  status       SignatureStatus @default(PENDING)
+  otpVerifiedAt DateTime?
+  viewedAt     DateTime?
+  signedAt     DateTime?
+  signaturePath String?
+  ip           String?
+  userAgent    String?
+  createdAt    DateTime        @default(now())
+
+  @@unique([contractId, partyId])
+}
+
+model Guarantee {
+  id         String        @id @default(cuid())
+  tenancyId  String
+  tenancy    Tenancy       @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  type       GuaranteeType
+  amount     Int // agorot
+  expiresAt  DateTime?     @db.Date
+  receivedAt DateTime?
+  filePath   String?
+  notes      String?
+
+  @@index([tenancyId])
+}
+
+// ─── Payments ────────────────────────────────────────────
+
+model Payment {
+  id          String         @id @default(cuid())
+  tenancyId   String
+  tenancy     Tenancy        @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  /// First day of the month this payment covers.
+  periodMonth DateTime       @db.Date
+  dueDate     DateTime       @db.Date
+  amountDue   Int // agorot
+  amountPaid  Int            @default(0)
+  method      PaymentMethod?
+  status      PaymentStatus  @default(EXPECTED)
+  paidAt      DateTime?
+  proofPath   String? // tenant-uploaded receipt
+  notes       String?
+  check       Check?
+
+  @@unique([tenancyId, periodMonth])
+  @@index([dueDate, status])
+}
+
+model Check {
+  id          String    @id @default(cuid())
+  paymentId   String    @unique
+  payment     Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  bank        String
+  branch      String?
+  account     String?
+  number      String
+  dueDate     DateTime  @db.Date
+  depositedAt DateTime?
+  bouncedAt   DateTime?
+  imagePath   String?
+}
+
+model IndexUpdate {
+  id          String    @id @default(cuid())
+  tenancyId   String
+  tenancy     Tenancy   @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  indexValue  Decimal   @db.Decimal(10, 4)
+  oldRent     Int
+  newRent     Int
+  effectiveAt DateTime  @db.Date
+  approvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([tenancyId])
+}
+
+// ─── During & end of tenancy ─────────────────────────────
+
+model Issue {
+  id          String      @id @default(cuid())
+  tenancyId   String
+  tenancy     Tenancy     @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  urgent      Boolean     @default(false)
+  status      IssueStatus @default(OPEN)
+  photoPaths  String[]
+  reportedAt  DateTime    @default(now())
+  resolvedAt  DateTime?
+
+  @@index([tenancyId, status])
+}
+
+model Inspection {
+  id               String            @id @default(cuid())
+  tenancyId        String
+  tenancy          Tenancy           @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  kind             InspectionKind
+  tenantApprovedAt DateTime?
+  createdAt        DateTime          @default(now())
+  photos           InspectionPhoto[]
+
+  @@unique([tenancyId, kind])
+}
+
+model InspectionPhoto {
+  id           String     @id @default(cuid())
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  room         String
+  path         String
+  note         String?
+  byTenant     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@index([inspectionId])
+}
+
+model UtilityTransfer {
+  id          String      @id @default(cuid())
+  tenancyId   String
+  tenancy     Tenancy     @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  type        UtilityType
+  proofPath   String?
+  confirmedAt DateTime?
+
+  @@unique([tenancyId, type])
+}
+
+model DepositSettlement {
+  id          String    @id @default(cuid())
+  tenancyId   String    @unique
+  tenancy     Tenancy   @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  depositAmount Int
+  /// [{ reason, amount }] in agorot
+  deductions  Json      @default("[]")
+  dueBy       DateTime  @db.Date
+  returnedAt  DateTime?
+}
+
+// ─── Cross-cutting ───────────────────────────────────────
+
+model TimelineEvent {
+  id        String   @id @default(cuid())
+  tenancyId String
+  tenancy   Tenancy  @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  type      String // e.g. "payment.paid", "issue.reported", "contract.signed"
+  actor     String // "landlord" | "tenant:<partyId>" | "system"
+  data      Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([tenancyId, createdAt])
+}
+
+model Document {
+  id         String    @id @default(cuid())
+  ownerId    String
+  owner      User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  tenancyId  String?
+  tenancy    Tenancy?  @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  name       String
+  path       String
+  mimeType   String
+  createdAt  DateTime  @default(now())
+
+  @@index([ownerId])
+}
+
+/// One-time tenant links. Only a SHA-256 hash of the token is stored.
+model MagicLink {
+  id        String           @id @default(cuid())
+  tenancyId String
+  tenancy   Tenancy          @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  partyId   String?
+  purpose   MagicLinkPurpose
+  tokenHash String           @unique
+  /// Purpose-specific target, e.g. { paymentId } or { signatureRequestId }
+  target    Json             @default("{}")
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([tenancyId])
+}
