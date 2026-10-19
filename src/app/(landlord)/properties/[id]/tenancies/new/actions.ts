@@ -1,0 +1,165 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requireUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { isValidIsraeliId, normalizeIsraeliPhone } from "@/lib/israel";
+
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "יש לבחור תאריך")
+  .transform((s) => new Date(`${s}T00:00:00Z`));
+
+const PartySchema = z.object({
+  role: z.enum(["TENANT", "GUARANTOR"]),
+  fullName: z.string().trim().min(2, "יש להזין שם מלא"),
+  phone: z
+    .string()
+    .transform((s, ctx) => {
+      const phone = normalizeIsraeliPhone(s);
+      if (!phone) ctx.addIssue({ code: "custom", message: "מספר טלפון לא תקין" });
+      return phone ?? "";
+    }),
+  idNumber: z
+    .string()
+    .trim()
+    .optional()
+    .transform((s) => (s ? s : undefined))
+    .refine((s) => !s || isValidIsraeliId(s), "מספר ת\"ז לא תקין"),
+  email: z
+    .string()
+    .trim()
+    .optional()
+    .transform((s) => (s ? s : undefined))
+    .pipe(z.email("כתובת מייל לא תקינה").optional()),
+});
+
+const TenancySchema = z
+  .object({
+    mode: z.enum(["new", "existing"]),
+    startDate: isoDate,
+    endDate: isoDate,
+    monthlyRent: z.coerce
+      .number({ message: "יש להזין סכום" })
+      .positive("יש להזין סכום חיובי")
+      .max(1_000_000, "סכום גבוה מדי"),
+    paymentDay: z.coerce
+      .number()
+      .int()
+      .min(1, "יום בין 1 ל-28")
+      .max(28, "יום בין 1 ל-28"),
+    hasOption: z.boolean(),
+    optionMonths: z.coerce.number().int().min(1).max(60).optional(),
+    isIndexLinked: z.boolean(),
+    baseIndex: z.coerce.number().positive("מדד לא תקין").optional(),
+    parties: z.array(PartySchema),
+  })
+  .superRefine((v, ctx) => {
+    if (v.endDate <= v.startDate) {
+      ctx.addIssue({ code: "custom", path: ["endDate"], message: "תאריך הסיום חייב להיות אחרי תאריך ההתחלה" });
+    }
+    if (!v.parties.some((p) => p.role === "TENANT")) {
+      ctx.addIssue({ code: "custom", path: ["parties"], message: "יש להוסיף לפחות שוכר אחד" });
+    }
+    if (v.hasOption && !v.optionMonths) {
+      ctx.addIssue({ code: "custom", path: ["optionMonths"], message: "יש להזין את אורך האופציה בחודשים" });
+    }
+  });
+
+export type TenancyFormInput = {
+  mode: "new" | "existing";
+  startDate: string;
+  endDate: string;
+  monthlyRent: string;
+  paymentDay: string;
+  hasOption: boolean;
+  optionMonths: string;
+  isIndexLinked: boolean;
+  baseIndex: string;
+  parties: {
+    role: "TENANT" | "GUARANTOR";
+    fullName: string;
+    phone: string;
+    idNumber: string;
+    email: string;
+  }[];
+};
+
+export type TenancyFormState = {
+  // Keys are field paths, e.g. "startDate" or "parties.1.phone".
+  errors?: Record<string, string>;
+  formError?: string;
+};
+
+const blank = (s: string) => (s.trim() === "" ? undefined : s);
+
+export async function createTenancy(
+  propertyId: string,
+  input: TenancyFormInput,
+): Promise<TenancyFormState> {
+  const user = await requireUser();
+
+  const property = await prisma.property.findFirst({
+    where: { id: propertyId, ownerId: user.id },
+    select: { id: true },
+  });
+  if (!property) return { formError: "הנכס לא נמצא" };
+
+  const parsed = TenancySchema.safeParse({
+    ...input,
+    optionMonths: input.hasOption ? blank(input.optionMonths) : undefined,
+    baseIndex: input.isIndexLinked ? blank(input.baseIndex) : undefined,
+  });
+  if (!parsed.success) {
+    const errors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      errors[issue.path.join(".")] ??= issue.message;
+    }
+    return { errors };
+  }
+  const data = parsed.data;
+
+  // One live tenancy per property for any given period.
+  const overlapping = await prisma.tenancy.findFirst({
+    where: {
+      propertyId,
+      status: { not: "CLOSED" },
+      startDate: { lte: data.endDate },
+      endDate: { gte: data.startDate },
+    },
+    select: { id: true },
+  });
+  if (overlapping) {
+    return { formError: "כבר קיימת שכירות פעילה בנכס בתאריכים האלה" };
+  }
+
+  const imported = data.mode === "existing";
+  await prisma.tenancy.create({
+    data: {
+      propertyId,
+      // An existing tenancy is already signed; a new one still needs signatures.
+      status: imported ? "ACTIVE" : "DRAFT",
+      imported,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      monthlyRent: Math.round(data.monthlyRent * 100),
+      paymentDay: data.paymentDay,
+      hasOption: data.hasOption,
+      optionMonths: data.hasOption ? data.optionMonths : null,
+      isIndexLinked: data.isIndexLinked,
+      baseIndex: data.isIndexLinked && data.baseIndex ? String(data.baseIndex) : null,
+      parties: { create: data.parties },
+      timeline: {
+        create: {
+          type: imported ? "tenancy.imported" : "tenancy.created",
+          actor: "landlord",
+        },
+      },
+    },
+  });
+
+  revalidatePath(`/properties/${propertyId}`);
+  redirect(`/properties/${propertyId}`);
+}

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { PropertyForm } from "./property-form";
@@ -46,12 +47,17 @@ async function PropertyList() {
       <p className="opacity-70">{properties.length} נכסים</p>
       <ul className="grid gap-3 sm:grid-cols-2">
         {properties.map((p) => (
-          <li key={p.id} className="rounded-xl border border-black/10 p-4 dark:border-white/15">
-            <p className="font-semibold">{p.address}</p>
-            <p className="text-sm opacity-70">{p.city}</p>
-            <p className="mt-2 text-sm">
-              {p.tenancies.length > 0 ? "מושכרת" : "אין שכירות פעילה"}
-            </p>
+          <li key={p.id}>
+            <Link
+              href={`/properties/${p.id}`}
+              className="block rounded-xl border border-black/10 p-4 hover:border-blue-500 dark:border-white/15"
+            >
+              <p className="font-semibold">{p.address}</p>
+              <p className="text-sm opacity-70">{p.city}</p>
+              <p className="mt-2 text-sm">
+                {p.tenancies.length > 0 ? "מושכרת" : "אין שכירות פעילה"}
+              </p>
+            </Link>
           </li>
         ))}
       </ul>
