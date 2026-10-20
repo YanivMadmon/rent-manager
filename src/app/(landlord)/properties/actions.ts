@@ -8,8 +8,6 @@ import { prisma } from "@/lib/prisma";
 const PropertySchema = z.object({
   address: z.string().trim().min(2, "יש להזין כתובת"),
   city: z.string().trim().min(2, "יש להזין עיר"),
-  block: z.string().trim().max(20).optional(),
-  parcel: z.string().trim().max(20).optional(),
   notes: z.string().trim().max(1000).optional(),
 });
 
@@ -30,8 +28,6 @@ export async function createProperty(
   const parsed = PropertySchema.safeParse({
     address: formData.get("address") ?? "",
     city: formData.get("city") ?? "",
-    block: emptyToUndefined(formData.get("block")),
-    parcel: emptyToUndefined(formData.get("parcel")),
     notes: emptyToUndefined(formData.get("notes")),
   });
 

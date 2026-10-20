@@ -24,8 +24,6 @@ export function PropertyForm({ onDone }: { onDone?: () => void }) {
     <form ref={formRef} action={formAction} className="grid gap-4 sm:grid-cols-2">
       <Field label="כתובת" name="address" error={state.errors?.address} required />
       <Field label="עיר" name="city" error={state.errors?.city} required />
-      <Field label="גוש (לא חובה)" name="block" error={state.errors?.block} />
-      <Field label="חלקה (לא חובה)" name="parcel" error={state.errors?.parcel} />
       <label className="space-y-1 sm:col-span-2">
         <span className="text-sm font-medium">הערות</span>
         <textarea name="notes" rows={2} className={inputClass} />

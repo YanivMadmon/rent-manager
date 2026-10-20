@@ -103,8 +103,6 @@ model Property {
   owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   address   String
   city      String
-  block     String? // גוש
-  parcel    String? // חלקה
   notes     String?
   createdAt DateTime   @default(now())
   tenancies Tenancy[]

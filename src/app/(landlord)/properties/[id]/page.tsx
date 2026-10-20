@@ -43,11 +43,7 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
     <div className="space-y-8">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">{property.address}</h1>
-        <p className="opacity-70">
-          {property.city}
-          {property.block && ` · גוש ${property.block}`}
-          {property.parcel && ` · חלקה ${property.parcel}`}
-        </p>
+        <p className="opacity-70">{property.city}</p>
         {property.notes && <p className="pt-2 text-sm">{property.notes}</p>}
       </div>
 
