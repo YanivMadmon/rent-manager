@@ -18,8 +18,7 @@ Product spec (PRD): https://claude.ai/code/artifact/e786e2a5-a883-40b2-be89-4447
 ```bash
 npm install
 cp .env.example .env   # fill in the Supabase values
-npx prisma generate
-npx prisma migrate dev
+npm run db:migrate     # applies migrations + regenerates the Prisma client
 npm run dev
 ```
 
@@ -27,6 +26,10 @@ Open http://localhost:3000.
 
 ## Conventions
 
+- After changing `prisma/schema.prisma`, run `npm run db:migrate -- --name <change>`.
+  Prisma 7's `migrate dev` no longer regenerates the client by itself; a stale client
+  queries columns that no longer exist. Restart `npm run dev` afterwards.
+- New tables need RLS enabled in their migration (see `enable_rls`).
 - Money is stored in agorot (`Int`).
 - Every landlord query is scoped by `ownerId`.
 - Tenant pages live under `/l/[token]` and are authorized by a one-time link
