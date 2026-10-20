@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import {
   createTenancy,
+  updateTenancy,
   type TenancyFormInput,
   type TenancyFormState,
 } from "./actions";
@@ -20,19 +21,31 @@ const emptyParty = (role: Party["role"]): Party => ({
 const inputClass =
   "w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 aria-[invalid=true]:border-red-500 dark:border-white/20";
 
-export function TenancyForm({ propertyId }: { propertyId: string }) {
-  const [values, setValues] = useState<TenancyFormInput>({
-    mode: "existing",
-    startDate: "",
-    endDate: "",
-    monthlyRent: "",
-    paymentDay: "1",
-    hasOption: false,
-    optionMonths: "12",
-    isIndexLinked: false,
-    baseIndex: "",
-    parties: [emptyParty("TENANT")],
-  });
+const EMPTY_FORM: TenancyFormInput = {
+  mode: "existing",
+  startDate: "",
+  endDate: "",
+  monthlyRent: "",
+  paymentDay: "1",
+  hasOption: false,
+  optionMonths: "12",
+  isIndexLinked: false,
+  baseIndex: "",
+  parties: [emptyParty("TENANT")],
+};
+
+// Pass `tenancyId` + `initialValues` to edit an existing tenancy.
+export function TenancyForm({
+  propertyId,
+  tenancyId,
+  initialValues,
+}: {
+  propertyId: string;
+  tenancyId?: string;
+  initialValues?: TenancyFormInput;
+}) {
+  const isEdit = Boolean(tenancyId);
+  const [values, setValues] = useState<TenancyFormInput>(initialValues ?? EMPTY_FORM);
   const [state, setState] = useState<TenancyFormState>({});
   const [pending, startTransition] = useTransition();
   const err = (path: string) => state.errors?.[path];
@@ -56,14 +69,18 @@ export function TenancyForm({ propertyId }: { propertyId: string }) {
     e.preventDefault();
     startTransition(async () => {
       // On success the action redirects; otherwise it returns the errors.
-      setState(await createTenancy(propertyId, values));
+      setState(
+        tenancyId
+          ? await updateTenancy(tenancyId, values)
+          : await createTenancy(propertyId, values),
+      );
     });
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-8" noValidate>
-      {/* New contract vs. a tenancy that is already running */}
-      <fieldset className="space-y-3">
+      {/* New contract vs. a tenancy that is already running (fixed once created) */}
+      <fieldset className="space-y-3" hidden={isEdit}>
         <legend className="mb-2 text-lg font-semibold">סוג השכירות</legend>
         <div className="grid gap-3 sm:grid-cols-2">
           <ModeOption
@@ -86,7 +103,7 @@ export function TenancyForm({ propertyId }: { propertyId: string }) {
         {err("parties") && <p className="text-sm text-red-600">{err("parties")}</p>}
 
         {values.parties.map((p, i) => (
-          <div key={i} className="space-y-3 rounded-xl border border-black/10 p-4 dark:border-white/15">
+          <div key={p.id ?? `new-${i}`} className="space-y-3 rounded-xl border border-black/10 p-4 dark:border-white/15">
             <div className="flex items-center justify-between">
               <span className="font-medium">{p.role === "TENANT" ? "שוכר" : "ערב"}</span>
               {values.parties.length > 1 && (
@@ -268,7 +285,7 @@ export function TenancyForm({ propertyId }: { propertyId: string }) {
         disabled={pending}
         className="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
       >
-        {pending ? "שומר..." : "שמירת השכירות"}
+        {pending ? "שומר..." : isEdit ? "שמירת שינויים" : "שמירת השכירות"}
       </button>
     </form>
   );

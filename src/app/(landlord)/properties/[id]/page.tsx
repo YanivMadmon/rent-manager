@@ -84,9 +84,19 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
                     {t.isIndexLinked && " · צמוד למדד"}
                   </p>
                 </div>
-                <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-medium dark:bg-white/10">
-                  {TENANCY_STATUS_LABEL[t.status]}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-medium dark:bg-white/10">
+                    {TENANCY_STATUS_LABEL[t.status]}
+                  </span>
+                  {t.status !== "CLOSED" && (
+                    <Link
+                      href={`/properties/${property.id}/tenancies/${t.id}/edit`}
+                      className="rounded-lg border border-black/15 px-3 py-1 text-sm hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+                    >
+                      עריכה
+                    </Link>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

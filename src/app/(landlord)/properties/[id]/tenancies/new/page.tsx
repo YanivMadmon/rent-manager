@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { TenancyForm } from "./tenancy-form";
+import { TenancyForm } from "../tenancy-form";
 
 export default function NewTenancyPage({ params }: PageProps<"/properties/[id]/tenancies/new">) {
   return (
