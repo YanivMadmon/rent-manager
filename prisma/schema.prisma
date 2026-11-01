@@ -107,8 +107,21 @@ model Property {
   createdAt DateTime   @default(now())
   tenancies Tenancy[]
   documents Document[]
+  photos    PropertyPhoto[]
 
   @@index([ownerId])
+}
+
+/// A photo in the private "property-photos" storage bucket.
+/// Path layout: <ownerId>/<propertyId>/<uuid>.<ext>
+model PropertyPhoto {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  path       String   @unique
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
 }
 
 model Tenancy {
