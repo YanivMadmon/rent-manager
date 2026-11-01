@@ -46,6 +46,10 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
         {property.notes && <p className="pt-2 text-sm">{property.notes}</p>}
       </div>
 
+      <Suspense fallback={<p className="opacity-60">טוען תמונות...</p>}>
+        <PropertyPhotos propertyId={property.id} />
+      </Suspense>
+
       {current ? (
         <CurrentTenancy propertyId={property.id} tenancy={current} />
       ) : (
@@ -59,10 +63,6 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
           </Link>
         </section>
       )}
-
-      <Suspense fallback={<p className="opacity-60">טוען תמונות...</p>}>
-        <PropertyPhotos propertyId={property.id} />
-      </Suspense>
 
       {past.length > 0 && (
         <section className="space-y-3">
