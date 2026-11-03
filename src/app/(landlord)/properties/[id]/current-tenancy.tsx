@@ -40,12 +40,18 @@ export function CurrentTenancy({
             {tenancy.imported ? "שכירות קיימת שנוספה למעקב" : "שכירות חדשה"}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link
             href={`/properties/${propertyId}/tenancies/${tenancy.id}/payments`}
             className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
           >
             תשלומים וצ׳קים
+          </Link>
+          <Link
+            href={`/properties/${propertyId}/tenancies/${tenancy.id}/timeline`}
+            className="rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10"
+          >
+            ציר זמן
           </Link>
           <Link
             href={`/properties/${propertyId}/tenancies/${tenancy.id}/edit`}

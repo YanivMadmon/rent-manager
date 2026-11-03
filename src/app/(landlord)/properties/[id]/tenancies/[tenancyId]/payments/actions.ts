@@ -6,7 +6,14 @@ import { requireUser } from "@/lib/auth";
 import { formatILS, formatMonth } from "@/lib/format";
 import { linkUrl, newToken } from "@/lib/magic-links";
 import { prisma } from "@/lib/prisma";
-import { buildCheckSeries, monthStart } from "@/lib/payments";
+import {
+  buildCheckSeries,
+  daysLate,
+  monthStart,
+  noticeMessage,
+  noticeStage,
+  todayUtc,
+} from "@/lib/payments";
 import { createAdminClient, PROOF_BUCKET } from "@/lib/supabase/admin";
 
 export type ActionResult = { error?: string; notice?: string };
@@ -47,7 +54,10 @@ const UpdateCheckSchema = z.object({
 async function ownedPayment(userId: string, paymentId: string) {
   return prisma.payment.findFirst({
     where: { id: paymentId, tenancy: { property: { ownerId: userId } } },
-    include: { check: true, tenancy: { select: { propertyId: true } } },
+    include: {
+      check: true,
+      tenancy: { select: { propertyId: true, property: { select: { address: true } } } },
+    },
   });
 }
 
@@ -77,8 +87,22 @@ export async function createPaymentLink(
   });
   if (!tenant) return { error: "אין שוכר בשכירות" };
 
+  const today = todayUtc();
+  const stage = noticeStage(payment, today);
   const { token, tokenHash } = newToken();
   await prisma.$transaction([
+    ...(stage === "REQUEST"
+      ? []
+      : [
+          prisma.timelineEvent.create({
+            data: {
+              tenancyId: payment.tenancyId,
+              type: "payment.notice_prepared",
+              actor: "landlord",
+              data: { paymentId: payment.id, stage },
+            },
+          }),
+        ]),
     prisma.magicLink.updateMany({
       where: {
         tenancyId: payment.tenancyId,
@@ -100,10 +124,14 @@ export async function createPaymentLink(
     }),
   ]);
 
-  const amount = formatILS(payment.amountDue - payment.amountPaid);
-  const message =
-    `שלום ${tenant.fullName}, זה קישור לעדכון על תשלום שכר הדירה ` +
-    `לחודש ${formatMonth(payment.periodMonth)} (${amount}): ${await linkUrl(token)}`;
+  const message = noticeMessage(stage, {
+    tenantName: tenant.fullName,
+    month: formatMonth(payment.periodMonth),
+    amount: formatILS(payment.amountDue - payment.amountPaid),
+    address: payment.tenancy.property.address,
+    days: daysLate(payment.dueDate, today),
+    url: await linkUrl(token),
+  });
   const phone = tenant.phone.replace(/^\+/, "");
   return { message, whatsappUrl: `https://wa.me/${phone}?text=${encodeURIComponent(message)}` };
 }

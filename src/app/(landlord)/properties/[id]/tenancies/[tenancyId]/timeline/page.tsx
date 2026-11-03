@@ -1,0 +1,68 @@
+import { Suspense } from "react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { requireUser } from "@/lib/auth";
+import { formatDateTime } from "@/lib/format";
+import { prisma } from "@/lib/prisma";
+
+type Props = PageProps<"/properties/[id]/tenancies/[tenancyId]/timeline">;
+
+const EVENT_LABEL: Record<string, string> = {
+  "tenancy.created": "השכירות נוצרה",
+  "tenancy.imported": "שכירות קיימת נוספה למעקב",
+  "tenancy.updated": "פרטי השכירות עודכנו",
+  "payment.paid": "נרשם תשלום",
+  "payment.undone": "רישום תשלום בוטל",
+  "payment.reported": "השוכר דיווח על תשלום",
+  "payment.report_dismissed": "דיווח של השוכר נדחה",
+  "payment.notice_prepared": "הוכנה הודעה לשוכר על תשלום",
+  "checks.added": "נוספו צ׳קים",
+  "check.deposited": "צ׳ק הופקד",
+  "check.bounced": "צ׳ק חזר",
+  "check.removed": "צ׳ק הוסר",
+};
+
+export default function TimelinePage({ params }: Props) {
+  return (
+    <Suspense fallback={<p className="opacity-60">טוען...</p>}>
+      <Timeline params={params} />
+    </Suspense>
+  );
+}
+
+async function Timeline({ params }: Pick<Props, "params">) {
+  const { id, tenancyId } = await params;
+  const user = await requireUser();
+
+  const tenancy = await prisma.tenancy.findFirst({
+    where: { id: tenancyId, propertyId: id, property: { ownerId: user.id } },
+    include: {
+      property: { select: { address: true } },
+      timeline: { orderBy: { createdAt: "desc" } },
+    },
+  });
+  if (!tenancy) notFound();
+
+  return (
+    <div className="space-y-6">
+      <Link href={`/properties/${id}`} className="text-sm opacity-70 hover:underline">
+        → {tenancy.property.address}
+      </Link>
+      <h1 className="text-2xl font-bold">ציר זמן</h1>
+
+      <ol className="space-y-2">
+        {tenancy.timeline.map((event) => (
+          <li
+            key={event.id}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-black/10 p-4 dark:border-white/15"
+          >
+            <p className="font-medium">{EVENT_LABEL[event.type] ?? event.type}</p>
+            <p className="text-sm opacity-70">
+              {event.actor.startsWith("tenant") ? "השוכר" : "המשכיר"} · {formatDateTime(event.createdAt)}
+            </p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}

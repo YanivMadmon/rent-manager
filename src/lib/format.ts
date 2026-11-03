@@ -16,6 +16,13 @@ export const formatDate = (d: Date) => dateFmt.format(d);
 const monthFmt = new Intl.DateTimeFormat("he-IL", { timeZone: "UTC", month: "long", year: "numeric" });
 export const formatMonth = (d: Date) => monthFmt.format(d);
 
+const dateTimeFmt = new Intl.DateTimeFormat("he-IL", {
+  timeZone: "Asia/Jerusalem",
+  dateStyle: "short",
+  timeStyle: "short",
+});
+export const formatDateTime = (d: Date) => dateTimeFmt.format(d);
+
 // +972501234567 → 050-1234567
 export function formatPhone(e164: string) {
   const local = "0" + e164.replace(/^\+972/, "");

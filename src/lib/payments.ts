@@ -103,3 +103,48 @@ export function buildCheckSeries(firstNumber: string, firstDate: Date, count: nu
     dueDate: addMonths(firstDate, i),
   }));
 }
+
+export const REMINDER_AFTER_DAYS = 3;
+const FORMAL_AFTER_DAYS = 10;
+
+export const daysLate = (dueDate: Date, today: Date) =>
+  Math.round((today.getTime() - dueDate.getTime()) / DAY_MS);
+
+export type NoticeStage = "REQUEST" | "REMINDER" | "FORMAL" | "BOUNCED";
+
+export const NOTICE_LABEL: Record<NoticeStage, string> = {
+  REQUEST: "קישור לשוכר",
+  REMINDER: "תזכורת לשוכר",
+  FORMAL: "הודעה רשמית לשוכר",
+  BOUNCED: "הודעה על צ׳ק שחזר",
+};
+
+export function noticeStage(p: Pick<Payment, "status" | "dueDate">, today: Date): NoticeStage {
+  if (p.status === "BOUNCED") return "BOUNCED";
+  const late = daysLate(p.dueDate, today);
+  if (late >= FORMAL_AFTER_DAYS) return "FORMAL";
+  return late >= REMINDER_AFTER_DAYS ? "REMINDER" : "REQUEST";
+}
+
+type NoticeDetails = {
+  tenantName: string;
+  month: string;
+  amount: string;
+  address: string;
+  days: number;
+  url: string;
+};
+
+export function noticeMessage(stage: NoticeStage, d: NoticeDetails) {
+  const hello = `שלום ${d.tenantName},`;
+  switch (stage) {
+    case "REQUEST":
+      return `${hello} זה קישור לעדכון על תשלום שכר הדירה לחודש ${d.month} (${d.amount}): ${d.url}`;
+    case "REMINDER":
+      return `${hello} תזכורת: שכר הדירה לחודש ${d.month} (${d.amount}) עבור ${d.address} עדיין לא התקבל. אם כבר שילמת, אפשר לעדכן כאן: ${d.url}`;
+    case "FORMAL":
+      return `${hello} שכר הדירה לחודש ${d.month} בסך ${d.amount} עבור ${d.address} טרם שולם, ועברו ${d.days} ימים ממועד התשלום. אבקש להסדיר את התשלום בהקדם ולעדכן כאן: ${d.url}`;
+    case "BOUNCED":
+      return `${hello} הצ׳ק לחודש ${d.month} בסך ${d.amount} חזר מהבנק. אבקש להסדיר תשלום חלופי בהעברה או במזומן ולעדכן כאן: ${d.url}`;
+  }
+}

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatILS } from "@/lib/format";
-import { paymentStatus, todayUtc } from "@/lib/payments";
+import { daysLate, NOTICE_LABEL, noticeStage, paymentStatus, todayUtc } from "@/lib/payments";
 import { createAdminClient, PROOF_BUCKET } from "@/lib/supabase/admin";
 import { AddChecksButton } from "./add-checks-button";
 import { PaymentRow } from "./payment-row";
@@ -96,6 +96,8 @@ async function Payments({ params }: Pick<Props, "params">) {
                 amountPaid: p.amountPaid,
                 method: p.method,
                 status: paymentStatus(p, today),
+                daysLate: daysLate(p.dueDate, today),
+                noticeLabel: NOTICE_LABEL[noticeStage(p, today)],
                 reportedAt: p.reportedAt,
                 reportedMethod: p.reportedMethod,
                 proof: p.proofPath

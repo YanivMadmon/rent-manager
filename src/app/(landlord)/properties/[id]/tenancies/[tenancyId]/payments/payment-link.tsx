@@ -5,7 +5,15 @@ import { createPaymentLink } from "./actions";
 
 // The landlord sends the link from their own WhatsApp: nothing reaches the
 // tenant until they press send, so the link is prepared first and shown here.
-export function PaymentLink({ paymentId, className }: { paymentId: string; className: string }) {
+export function PaymentLink({
+  paymentId,
+  label,
+  className,
+}: {
+  paymentId: string;
+  label: string;
+  className: string;
+}) {
   const [prepared, setPrepared] = useState<{ whatsappUrl: string; message: string }>();
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
@@ -38,7 +46,7 @@ export function PaymentLink({ paymentId, className }: { paymentId: string; class
   return (
     <>
       <button type="button" disabled={pending} className={className} onClick={prepare}>
-        {pending ? "מכין..." : "קישור לשוכר"}
+        {pending ? "מכין..." : label}
       </button>
       {error && <p className="w-full text-sm text-red-700 dark:text-red-400">{error}</p>}
     </>

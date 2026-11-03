@@ -45,6 +45,8 @@ type Row = {
   amountPaid: number;
   method: PaymentMethod | null;
   status: PaymentStatus;
+  daysLate: number;
+  noticeLabel: string;
   reportedAt: Date | null;
   reportedMethod: PaymentMethod | null;
   proof: { url: string | null; isPdf: boolean } | null;
@@ -77,6 +79,9 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
           <p className="text-sm opacity-70">
             {formatILS(payment.amountDue)} · עד {formatDate(payment.dueDate)}
           </p>
+          {status === "LATE" && (
+            <p className="text-sm text-red-700 dark:text-red-400">{payment.daysLate === 1 ? "איחור של יום אחד" : `איחור של ${payment.daysLate} ימים`}</p>
+          )}
           {status === "PARTIAL" && (
             <p className="text-sm opacity-70">
               שולם {formatILS(payment.amountPaid)}, נותרו {formatILS(balance)}
@@ -120,7 +125,7 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
             דחיית הדיווח
           </button>
         )}
-        {canRecord && !reportedAt && <PaymentLink paymentId={id} className={actionClass} />}
+        {canRecord && !reportedAt && <PaymentLink paymentId={id} label={payment.noticeLabel} className={actionClass} />}
         {status === "PENDING_DEPOSIT" && (
           <button type="button" disabled={pending} className={actionClass} onClick={() => run(() => depositCheck(id))}>
             הופקד
