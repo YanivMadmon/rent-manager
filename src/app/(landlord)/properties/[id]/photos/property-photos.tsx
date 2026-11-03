@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { createAdminClient, PHOTO_BUCKET } from "@/lib/supabase/admin";
 import { PhotoUploader } from "./photo-uploader";
-import { DeletePhotoButton } from "./delete-photo-button";
+import { PhotoGallery } from "./photo-gallery";
 
 // Caller must have verified that the property belongs to the current landlord.
 export async function PropertyPhotos({ propertyId }: { propertyId: string }) {
@@ -32,23 +32,7 @@ export async function PropertyPhotos({ propertyId }: { propertyId: string }) {
           עוד אין תמונות לנכס. כדאי לצלם את הדירה, למשל לפני כניסת שוכר.
         </p>
       ) : (
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {photos.map((photo) => {
-            const url = urls.get(photo.path);
-            return (
-              <li key={photo.id} className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-black/5 dark:bg-white/10">
-                {url && (
-                  <a href={url} target="_blank" rel="noopener noreferrer">
-                    {/* Signed URLs change hourly, so next/image caching adds nothing here. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={url} alt="תמונת הנכס" loading="lazy" className="h-full w-full object-cover" />
-                  </a>
-                )}
-                <DeletePhotoButton photoId={photo.id} />
-              </li>
-            );
-          })}
-        </ul>
+        <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: urls.get(p.path) ?? null }))} />
       )}
     </section>
   );
