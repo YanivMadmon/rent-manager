@@ -12,12 +12,15 @@ import {
 import {
   bounceCheck,
   depositCheck,
+  dismissReport,
   recordPayment,
   removeCheck,
   undoPayment,
   updateCheck,
   type ActionResult,
 } from "./actions";
+import { PaymentLink } from "./payment-link";
+import { ProofLink } from "./proof-link";
 
 const STATUS_STYLE: Record<PaymentStatus, string> = {
   EXPECTED: "bg-black/5 dark:bg-white/10",
@@ -42,6 +45,9 @@ type Row = {
   amountPaid: number;
   method: PaymentMethod | null;
   status: PaymentStatus;
+  reportedAt: Date | null;
+  reportedMethod: PaymentMethod | null;
+  proof: { url: string | null; isPdf: boolean } | null;
   check: { bank: string; number: string; dueDate: Date } | null;
 };
 
@@ -50,7 +56,7 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
 
-  const { id, status, check } = payment;
+  const { id, status, check, reportedAt, reportedMethod, proof } = payment;
   const balance = payment.amountDue - payment.amountPaid;
   const canRecord = status === "EXPECTED" || status === "LATE" || status === "PARTIAL" || status === "BOUNCED";
 
@@ -90,12 +96,31 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
         </span>
       </div>
 
+      {reportedAt && (
+        <p className="rounded-lg bg-blue-50 px-3 py-2 text-sm dark:bg-blue-950/40">
+          השוכר דיווח ב-{formatDate(reportedAt)} ששילם
+          {reportedMethod && ` (${PAYMENT_METHOD_LABEL[reportedMethod]})`}
+        </p>
+      )}
+      {proof?.url && <ProofLink url={proof.url} isPdf={proof.isPdf} />}
+
       <div className="flex flex-wrap gap-2">
         {canRecord && (
           <button type="button" className={actionClass} onClick={() => setEditing("payment")}>
-            רישום תשלום
+            {reportedAt ? "אישור התשלום" : "רישום תשלום"}
           </button>
         )}
+        {reportedAt && (
+          <button
+            type="button"
+            disabled={pending}
+            className={actionClass}
+            onClick={() => confirm("לדחות את הדיווח של השוכר?") && run(() => dismissReport(id))}
+          >
+            דחיית הדיווח
+          </button>
+        )}
+        {canRecord && !reportedAt && <PaymentLink paymentId={id} className={actionClass} />}
         {status === "PENDING_DEPOSIT" && (
           <button type="button" disabled={pending} className={actionClass} onClick={() => run(() => depositCheck(id))}>
             הופקד
@@ -151,7 +176,12 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
           }
           className="grid gap-2 sm:grid-cols-4"
         >
-          <select name="method" aria-label="אמצעי תשלום" className={fieldClass}>
+          <select
+            name="method"
+            aria-label="אמצעי תשלום"
+            defaultValue={reportedMethod ?? "TRANSFER"}
+            className={fieldClass}
+          >
             <option value="TRANSFER">{PAYMENT_METHOD_LABEL.TRANSFER}</option>
             <option value="CASH">{PAYMENT_METHOD_LABEL.CASH}</option>
           </select>
@@ -165,7 +195,14 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
             defaultValue={balance / 100}
             className={fieldClass}
           />
-          <input name="paidAt" type="date" required aria-label="תאריך" defaultValue={today} className={fieldClass} />
+          <input
+            name="paidAt"
+            type="date"
+            required
+            aria-label="תאריך"
+            defaultValue={reportedAt?.toISOString().slice(0, 10) ?? today}
+            className={fieldClass}
+          />
           <FormButtons pending={pending} onCancel={() => setEditing(null)} />
         </form>
       )}

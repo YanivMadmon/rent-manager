@@ -98,13 +98,13 @@ model User {
 }
 
 model Property {
-  id        String     @id @default(cuid())
+  id        String          @id @default(cuid())
   ownerId   String
-  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   address   String
   city      String
   notes     String?
-  createdAt DateTime   @default(now())
+  createdAt DateTime        @default(now())
   tenancies Tenancy[]
   documents Document[]
   photos    PropertyPhoto[]
@@ -125,25 +125,25 @@ model PropertyPhoto {
 }
 
 model Tenancy {
-  id               String        @id @default(cuid())
-  propertyId       String
-  property         Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  status           TenancyStatus @default(DRAFT)
-  startDate        DateTime      @db.Date
-  endDate          DateTime      @db.Date
-  monthlyRent      Int // agorot
-  paymentDay       Int           @default(1)
-  hasOption        Boolean       @default(false)
-  optionMonths     Int?
-  isIndexLinked    Boolean       @default(false)
-  baseIndex        Decimal?      @db.Decimal(10, 4)
+  id            String        @id @default(cuid())
+  propertyId    String
+  property      Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  status        TenancyStatus @default(DRAFT)
+  startDate     DateTime      @db.Date
+  endDate       DateTime      @db.Date
+  monthlyRent   Int // agorot
+  paymentDay    Int           @default(1)
+  hasOption     Boolean       @default(false)
+  optionMonths  Int?
+  isIndexLinked Boolean       @default(false)
+  baseIndex     Decimal?      @db.Decimal(10, 4)
   /// Whether the tenancy was imported mid-way (no in-app signing).
-  imported         Boolean       @default(false)
-  previousId       String?       @unique
-  previous         Tenancy?      @relation("Renewal", fields: [previousId], references: [id])
-  renewal          Tenancy?      @relation("Renewal")
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  imported      Boolean       @default(false)
+  previousId    String?       @unique
+  previous      Tenancy?      @relation("Renewal", fields: [previousId], references: [id])
+  renewal       Tenancy?      @relation("Renewal")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   parties           Party[]
   contracts         Contract[]
@@ -178,35 +178,35 @@ model Party {
 // ─── Contract & signing ──────────────────────────────────
 
 model Contract {
-  id              String             @id @default(cuid())
-  tenancyId       String
-  tenancy         Tenancy            @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
-  originalPath    String // storage path of the uploaded PDF
-  signedPath      String? // final PDF incl. signature certificate
-  sha256          String? // hash of the final signed PDF
+  id                String             @id @default(cuid())
+  tenancyId         String
+  tenancy           Tenancy            @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  originalPath      String // storage path of the uploaded PDF
+  signedPath        String? // final PDF incl. signature certificate
+  sha256            String? // hash of the final signed PDF
   /// Signature field placements: [{ partyId, page, x, y, w, h }]
-  fields          Json               @default("[]")
-  completedAt     DateTime?
-  createdAt       DateTime           @default(now())
+  fields            Json               @default("[]")
+  completedAt       DateTime?
+  createdAt         DateTime           @default(now())
   signatureRequests SignatureRequest[]
 
   @@index([tenancyId])
 }
 
 model SignatureRequest {
-  id           String          @id @default(cuid())
-  contractId   String
-  contract     Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
-  partyId      String
-  party        Party           @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  status       SignatureStatus @default(PENDING)
+  id            String          @id @default(cuid())
+  contractId    String
+  contract      Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  partyId       String
+  party         Party           @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  status        SignatureStatus @default(PENDING)
   otpVerifiedAt DateTime?
-  viewedAt     DateTime?
-  signedAt     DateTime?
+  viewedAt      DateTime?
+  signedAt      DateTime?
   signaturePath String?
-  ip           String?
-  userAgent    String?
-  createdAt    DateTime        @default(now())
+  ip            String?
+  userAgent     String?
+  createdAt     DateTime        @default(now())
 
   @@unique([contractId, partyId])
 }
@@ -228,20 +228,23 @@ model Guarantee {
 // ─── Payments ────────────────────────────────────────────
 
 model Payment {
-  id          String         @id @default(cuid())
-  tenancyId   String
-  tenancy     Tenancy        @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  id             String         @id @default(cuid())
+  tenancyId      String
+  tenancy        Tenancy        @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
   /// First day of the month this payment covers.
-  periodMonth DateTime       @db.Date
-  dueDate     DateTime       @db.Date
-  amountDue   Int // agorot
-  amountPaid  Int            @default(0)
-  method      PaymentMethod?
-  status      PaymentStatus  @default(EXPECTED)
-  paidAt      DateTime?
-  proofPath   String? // tenant-uploaded receipt
-  notes       String?
-  check       Check?
+  periodMonth    DateTime       @db.Date
+  dueDate        DateTime       @db.Date
+  amountDue      Int // agorot
+  amountPaid     Int            @default(0)
+  method         PaymentMethod?
+  status         PaymentStatus  @default(EXPECTED)
+  paidAt         DateTime?
+  proofPath      String? // tenant-uploaded receipt
+  /// Tenant said they paid; cleared once the landlord records or dismisses it.
+  reportedAt     DateTime?
+  reportedMethod PaymentMethod?
+  notes          String?
+  check          Check?
 
   @@unique([tenancyId, periodMonth])
   @@index([dueDate, status])
@@ -329,14 +332,14 @@ model UtilityTransfer {
 }
 
 model DepositSettlement {
-  id          String    @id @default(cuid())
-  tenancyId   String    @unique
-  tenancy     Tenancy   @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  id            String    @id @default(cuid())
+  tenancyId     String    @unique
+  tenancy       Tenancy   @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
   depositAmount Int
   /// [{ reason, amount }] in agorot
-  deductions  Json      @default("[]")
-  dueBy       DateTime  @db.Date
-  returnedAt  DateTime?
+  deductions    Json      @default("[]")
+  dueBy         DateTime  @db.Date
+  returnedAt    DateTime?
 }
 
 // ─── Cross-cutting ───────────────────────────────────────

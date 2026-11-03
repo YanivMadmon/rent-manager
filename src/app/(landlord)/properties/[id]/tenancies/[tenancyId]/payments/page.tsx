@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatILS } from "@/lib/format";
 import { paymentStatus, todayUtc } from "@/lib/payments";
+import { createAdminClient, PROOF_BUCKET } from "@/lib/supabase/admin";
 import { AddChecksButton } from "./add-checks-button";
 import { PaymentRow } from "./payment-row";
 
@@ -33,6 +34,17 @@ async function Payments({ params }: Pick<Props, "params">) {
 
   const today = todayUtc();
   const { payments } = tenancy;
+
+  // Receipts are private: show them through signed URLs valid for an hour.
+  const proofPaths = payments.flatMap((p) => p.proofPath ?? []);
+  const proofUrls = new Map<string, string>();
+  if (proofPaths.length > 0) {
+    const { data } = await createAdminClient()
+      .storage.from(PROOF_BUCKET)
+      .createSignedUrls(proofPaths, 60 * 60);
+    data?.forEach((d) => d.path && d.signedUrl && proofUrls.set(d.path, d.signedUrl));
+  }
+
   const received = payments.reduce((sum, p) => sum + p.amountPaid, 0);
   const expected = payments.reduce((sum, p) => sum + p.amountDue, 0);
   const lateCount = payments.filter((p) => paymentStatus(p, today) === "LATE").length;
@@ -84,6 +96,11 @@ async function Payments({ params }: Pick<Props, "params">) {
                 amountPaid: p.amountPaid,
                 method: p.method,
                 status: paymentStatus(p, today),
+                reportedAt: p.reportedAt,
+                reportedMethod: p.reportedMethod,
+                proof: p.proofPath
+                  ? { url: proofUrls.get(p.proofPath) ?? null, isPdf: p.proofPath.endsWith(".pdf") }
+                  : null,
                 check: p.check && {
                   bank: p.check.bank,
                   number: p.check.number,

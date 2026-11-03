@@ -12,3 +12,4 @@ export function createAdminClient() {
 }
 
 export const PHOTO_BUCKET = "property-photos";
+export const PROOF_BUCKET = "payment-proofs";

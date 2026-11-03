@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
+import { formatILS, formatMonth } from "@/lib/format";
+import { linkUrl, newToken } from "@/lib/magic-links";
 import { prisma } from "@/lib/prisma";
 import { buildCheckSeries, monthStart } from "@/lib/payments";
+import { createAdminClient, PROOF_BUCKET } from "@/lib/supabase/admin";
 
 export type ActionResult = { error?: string; notice?: string };
 
@@ -54,6 +57,84 @@ function refresh(propertyId: string, tenancyId: string) {
 }
 
 const NOT_FOUND = { error: "התשלום לא נמצא" };
+const LINK_DAYS = 30;
+
+// A fresh link replaces any unused one for this month, since only the hash of
+// the old token is stored and it can't be shown again.
+export async function createPaymentLink(
+  paymentId: string,
+): Promise<{ whatsappUrl: string; message: string } | { error: string }> {
+  const user = await requireUser();
+  const payment = await ownedPayment(user.id, paymentId);
+  if (!payment) return NOT_FOUND;
+  if (!["EXPECTED", "PARTIAL", "BOUNCED"].includes(payment.status)) {
+    return { error: "כבר נרשם תשלום לחודש הזה" };
+  }
+
+  const tenant = await prisma.party.findFirst({
+    where: { tenancyId: payment.tenancyId, role: "TENANT" },
+    orderBy: { id: "asc" },
+  });
+  if (!tenant) return { error: "אין שוכר בשכירות" };
+
+  const { token, tokenHash } = newToken();
+  await prisma.$transaction([
+    prisma.magicLink.updateMany({
+      where: {
+        tenancyId: payment.tenancyId,
+        purpose: "CONFIRM_PAYMENT",
+        usedAt: null,
+        target: { path: ["paymentId"], equals: payment.id },
+      },
+      data: { expiresAt: new Date() },
+    }),
+    prisma.magicLink.create({
+      data: {
+        tenancyId: payment.tenancyId,
+        partyId: tenant.id,
+        purpose: "CONFIRM_PAYMENT",
+        tokenHash,
+        target: { paymentId: payment.id },
+        expiresAt: new Date(Date.now() + LINK_DAYS * 24 * 60 * 60 * 1000),
+      },
+    }),
+  ]);
+
+  const amount = formatILS(payment.amountDue - payment.amountPaid);
+  const message =
+    `שלום ${tenant.fullName}, זה קישור לעדכון על תשלום שכר הדירה ` +
+    `לחודש ${formatMonth(payment.periodMonth)} (${amount}): ${await linkUrl(token)}`;
+  const phone = tenant.phone.replace(/^\+/, "");
+  return { message, whatsappUrl: `https://wa.me/${phone}?text=${encodeURIComponent(message)}` };
+}
+
+// The tenant's report turned out to be wrong: the month stays open.
+export async function dismissReport(paymentId: string): Promise<ActionResult> {
+  const user = await requireUser();
+  const payment = await ownedPayment(user.id, paymentId);
+  if (!payment?.reportedAt) return NOT_FOUND;
+
+  if (payment.proofPath) {
+    await createAdminClient().storage.from(PROOF_BUCKET).remove([payment.proofPath]);
+  }
+  await prisma.$transaction([
+    prisma.payment.update({
+      where: { id: payment.id },
+      data: { reportedAt: null, reportedMethod: null, proofPath: null },
+    }),
+    prisma.timelineEvent.create({
+      data: {
+        tenancyId: payment.tenancyId,
+        type: "payment.report_dismissed",
+        actor: "landlord",
+        data: { paymentId: payment.id },
+      },
+    }),
+  ]);
+
+  refresh(payment.tenancy.propertyId, payment.tenancyId);
+  return {};
+}
 
 // Bank transfer or cash. Partial amounts add up until the month is covered.
 export async function recordPayment(
@@ -77,7 +158,14 @@ export async function recordPayment(
   await prisma.$transaction([
     prisma.payment.update({
       where: { id: payment.id },
-      data: { method, amountPaid, paidAt, status: amountPaid === payment.amountDue ? "PAID" : "PARTIAL" },
+      data: {
+        method,
+        amountPaid,
+        paidAt,
+        status: amountPaid === payment.amountDue ? "PAID" : "PARTIAL",
+        reportedAt: null,
+        reportedMethod: null,
+      },
     }),
     prisma.timelineEvent.create({
       data: {

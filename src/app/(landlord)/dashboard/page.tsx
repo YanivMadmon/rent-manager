@@ -31,6 +31,7 @@ async function Dashboard() {
           { status: { in: ["EXPECTED", "PARTIAL"] }, dueDate: { lt: today } },
           { status: "PENDING_DEPOSIT", check: { dueDate: { lte: today } } },
           { status: "BOUNCED" },
+          { reportedAt: { not: null } },
         ],
       },
       orderBy: { dueDate: "asc" },
@@ -75,7 +76,7 @@ async function Dashboard() {
                   href={`/properties/${p.tenancy.propertyId}/tenancies/${p.tenancy.id}/payments`}
                   className="block rounded-xl border border-black/10 p-4 hover:border-blue-500 dark:border-white/15"
                 >
-                  <p className="font-semibold">{ACTION_LABEL[p.status] ?? "תשלום באיחור"}</p>
+                  <p className="font-semibold">{p.reportedAt ? "השוכר דיווח על תשלום" : (ACTION_LABEL[p.status] ?? "תשלום באיחור")}</p>
                   <p className="text-sm opacity-70">
                     {p.tenancy.property.address} · {p.tenancy.parties.map((t) => t.fullName).join(", ")}
                   </p>
