@@ -1,4 +1,10 @@
-import type { PartyRole, PaymentMethod, PaymentStatus, TenancyStatus } from "@/generated/prisma/enums";
+import type {
+  IssueStatus,
+  PartyRole,
+  PaymentMethod,
+  PaymentStatus,
+  TenancyStatus,
+} from "@/generated/prisma/enums";
 
 const ils = new Intl.NumberFormat("he-IL", {
   style: "currency",
@@ -51,6 +57,12 @@ export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
   CHECK: "צ׳ק",
   TRANSFER: "העברה",
   CASH: "מזומן",
+};
+
+export const ISSUE_STATUS_LABEL: Record<IssueStatus, string> = {
+  OPEN: "התקבל",
+  IN_PROGRESS: "בטיפול",
+  RESOLVED: "תוקן",
 };
 
 export const PARTY_ROLE_LABEL: Record<PartyRole, string> = {

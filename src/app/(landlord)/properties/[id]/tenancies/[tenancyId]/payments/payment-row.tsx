@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { PreparedMessage } from "@/components/prepared-message";
 import type { PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
 import {
   formatDate,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/format";
 import {
   bounceCheck,
+  createPaymentLink,
   depositCheck,
   dismissReport,
   recordPayment,
@@ -19,7 +21,6 @@ import {
   updateCheck,
   type ActionResult,
 } from "./actions";
-import { PaymentLink } from "./payment-link";
 import { ProofLink } from "./proof-link";
 
 const STATUS_STYLE: Record<PaymentStatus, string> = {
@@ -125,7 +126,11 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
             דחיית הדיווח
           </button>
         )}
-        {canRecord && !reportedAt && <PaymentLink paymentId={id} label={payment.noticeLabel} className={actionClass} />}
+        {canRecord && !reportedAt && <PreparedMessage
+            prepare={() => createPaymentLink(id)}
+            label={payment.noticeLabel}
+            className={actionClass}
+          />}
         {status === "PENDING_DEPOSIT" && (
           <button type="button" disabled={pending} className={actionClass} onClick={() => run(() => depositCheck(id))}>
             הופקד

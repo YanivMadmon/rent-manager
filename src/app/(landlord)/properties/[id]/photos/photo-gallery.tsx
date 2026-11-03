@@ -6,7 +6,13 @@ import { DeletePhotoButton } from "./delete-photo-button";
 const SWIPE_THRESHOLD_PX = 50;
 
 // Thumbnail grid that opens photos over the page, so viewing never leaves it.
-export function PhotoGallery({ photos }: { photos: { id: string; url: string | null }[] }) {
+export function PhotoGallery({
+  photos,
+  deletable = true,
+}: {
+  photos: { id: string; url: string | null }[];
+  deletable?: boolean;
+}) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const touchStartX = useRef<number | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -45,7 +51,7 @@ export function PhotoGallery({ photos }: { photos: { id: string; url: string | n
                 <img src={photo.url} alt="תמונת הנכס" loading="lazy" className="h-full w-full object-cover" />
               </button>
             )}
-            <DeletePhotoButton photoId={photo.id} />
+            {deletable && <DeletePhotoButton photoId={photo.id} />}
           </li>
         ))}
       </ul>

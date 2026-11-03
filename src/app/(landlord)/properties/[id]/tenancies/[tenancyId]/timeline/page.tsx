@@ -16,6 +16,8 @@ const EVENT_LABEL: Record<string, string> = {
   "payment.reported": "השוכר דיווח על תשלום",
   "payment.report_dismissed": "דיווח של השוכר נדחה",
   "payment.notice_prepared": "הוכנה הודעה לשוכר על תשלום",
+  "issue.reported": "השוכר דיווח על תקלה",
+  "issue.status_changed": "סטטוס תקלה עודכן",
   "checks.added": "נוספו צ׳קים",
   "check.deposited": "צ׳ק הופקד",
   "check.bounced": "צ׳ק חזר",

@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { PreparedMessage } from "@/components/prepared-message";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatDate, formatILS, formatMonth } from "@/lib/format";
+import { formatDate, formatILS, formatMonth, ISSUE_STATUS_LABEL } from "@/lib/format";
+import { daysLeft, deadlineLabel, issueDeadline } from "@/lib/issues";
 import {
   daysLate,
   monthStart,
@@ -11,7 +13,7 @@ import {
   REMINDER_AFTER_DAYS,
   todayUtc,
 } from "@/lib/payments";
-import { PaymentLink } from "../properties/[id]/tenancies/[tenancyId]/payments/payment-link";
+import { createPaymentLink } from "../properties/[id]/tenancies/[tenancyId]/payments/actions";
 
 export default function DashboardPage() {
   return (
@@ -29,7 +31,7 @@ async function Dashboard() {
   const chaseBefore = new Date(today.getTime() - (REMINDER_AFTER_DAYS - 1) * 24 * 60 * 60 * 1000);
   const live = { status: { not: "CLOSED" as const }, property: { ownerId: user.id } };
 
-  const [thisMonth, needingAction] = await Promise.all([
+  const [thisMonth, needingAction, openIssues] = await Promise.all([
     prisma.payment.findMany({
       where: { periodMonth: month, tenancy: live },
       select: { amountDue: true, amountPaid: true },
@@ -57,8 +59,16 @@ async function Dashboard() {
         },
       },
     }),
+    prisma.issue.findMany({
+      where: { tenancy: live, status: { not: "RESOLVED" } },
+      orderBy: [{ urgent: "desc" }, { reportedAt: "asc" }],
+      include: {
+        tenancy: { select: { propertyId: true, property: { select: { address: true } } } },
+      },
+    }),
   ]);
 
+  const now = new Date();
   const expected = thisMonth.reduce((sum, p) => sum + p.amountDue, 0);
   const received = thisMonth.reduce((sum, p) => sum + p.amountPaid, 0);
 
@@ -100,8 +110,8 @@ async function Dashboard() {
                 </Link>
                 {!p.reportedAt && p.status !== "PENDING_DEPOSIT" && (
                   <div className="flex flex-wrap gap-2">
-                    <PaymentLink
-                      paymentId={p.id}
+                    <PreparedMessage
+                      prepare={createPaymentLink.bind(null, p.id)}
                       label={NOTICE_LABEL[noticeStage(p, today)]}
                       className="rounded-lg border border-black/15 px-3 py-1.5 text-sm hover:bg-black/5 disabled:opacity-60 dark:border-white/20 dark:hover:bg-white/10"
                     />
@@ -112,6 +122,36 @@ async function Dashboard() {
           </ul>
         )}
       </section>
+
+      {openIssues.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">תקלות פתוחות</h2>
+          <ul className="space-y-2">
+            {openIssues.map((issue) => {
+              const left = daysLeft(issueDeadline(issue), now);
+              return (
+                <li key={issue.id}>
+                  <Link
+                    href={`/properties/${issue.tenancy.propertyId}`}
+                    className="block rounded-xl border border-black/10 p-4 hover:border-blue-500 dark:border-white/15"
+                  >
+                    <p className="break-words font-semibold">
+                      {issue.urgent && "דחוף: "}
+                      {issue.title}
+                    </p>
+                    <p className="text-sm opacity-70">
+                      {issue.tenancy.property.address} · {ISSUE_STATUS_LABEL[issue.status]}
+                    </p>
+                    <p className={`text-sm ${left < 0 ? "text-red-700 dark:text-red-400" : "opacity-70"}`}>
+                      {deadlineLabel(left)}
+                    </p>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

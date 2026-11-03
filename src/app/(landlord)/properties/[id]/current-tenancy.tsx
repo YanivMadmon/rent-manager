@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import type { Party, Tenancy } from "@/generated/prisma/client";
 import {
@@ -14,9 +15,11 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export function CurrentTenancy({
   propertyId,
   tenancy,
+  children,
 }: {
   propertyId: string;
   tenancy: Tenancy & { parties: Party[] };
+  children: ReactNode;
 }) {
   // Rendered at request time (behind the session read), so "now" is safe here.
   const today = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
@@ -84,6 +87,8 @@ export function CurrentTenancy({
           <PartyCard key={p.id} party={p} />
         ))}
       </div>
+
+      {children}
     </section>
   );
 }

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDate, formatILS, TENANCY_STATUS_LABEL } from "@/lib/format";
 import { CurrentTenancy } from "./current-tenancy";
 import { PropertyPhotos } from "./photos/property-photos";
+import { TenancyIssues } from "./tenancies/[tenancyId]/issues/tenancy-issues";
 
 export default function PropertyPage({ params }: PageProps<"/properties/[id]">) {
   return (
@@ -51,7 +52,11 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
       </Suspense>
 
       {current ? (
-        <CurrentTenancy propertyId={property.id} tenancy={current} />
+        <CurrentTenancy propertyId={property.id} tenancy={current}>
+          <Suspense fallback={<p className="opacity-60">טוען תקלות...</p>}>
+            <TenancyIssues tenancyId={current.id} />
+          </Suspense>
+        </CurrentTenancy>
       ) : (
         <section className="space-y-3 rounded-2xl border border-dashed border-black/20 p-6 text-center dark:border-white/20">
           <p className="opacity-80">אין שכירות פעילה בנכס.</p>

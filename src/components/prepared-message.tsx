@@ -1,27 +1,28 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createPaymentLink } from "./actions";
 
-// The landlord sends the link from their own WhatsApp: nothing reaches the
-// tenant until they press send, so the link is prepared first and shown here.
-export function PaymentLink({
-  paymentId,
+type Prepared = { whatsappUrl: string; message: string };
+
+// The landlord sends messages from their own WhatsApp: nothing reaches the
+// tenant until they press send, so the message is prepared first and shown here.
+export function PreparedMessage({
+  prepare,
   label,
   className,
 }: {
-  paymentId: string;
+  prepare: () => Promise<Prepared | { error: string }>;
   label: string;
   className: string;
 }) {
-  const [prepared, setPrepared] = useState<{ whatsappUrl: string; message: string }>();
+  const [prepared, setPrepared] = useState<Prepared>();
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
 
-  function prepare() {
+  function run() {
     setError(undefined);
     startTransition(async () => {
-      const result = await createPaymentLink(paymentId);
+      const result = await prepare();
       if ("error" in result) setError(result.error);
       else setPrepared(result);
     });
@@ -45,7 +46,7 @@ export function PaymentLink({
 
   return (
     <>
-      <button type="button" disabled={pending} className={className} onClick={prepare}>
+      <button type="button" disabled={pending} className={className} onClick={run}>
         {pending ? "מכין..." : label}
       </button>
       {error && <p className="w-full text-sm text-red-700 dark:text-red-400">{error}</p>}
