@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isValidIsraeliId, normalizeIsraeliPhone } from "@/lib/israel";
+import { syncPayments } from "@/lib/payments";
 
 const isoDate = z
   .string()
@@ -167,20 +168,23 @@ export async function createTenancy(
   if (await hasOverlap(propertyId, data)) return { formError: OVERLAP_ERROR };
 
   const imported = data.mode === "existing";
-  await prisma.tenancy.create({
-    data: {
-      propertyId,
-      // An existing tenancy is already signed; a new one still needs signatures.
-      status: imported ? "ACTIVE" : "DRAFT",
-      imported,
-      ...termsData(data),
-      parties: {
-        create: data.parties.map(withoutId),
+  await prisma.$transaction(async (tx) => {
+    const tenancy = await tx.tenancy.create({
+      data: {
+        propertyId,
+        // An existing tenancy is already signed; a new one still needs signatures.
+        status: imported ? "ACTIVE" : "DRAFT",
+        imported,
+        ...termsData(data),
+        parties: {
+          create: data.parties.map(withoutId),
+        },
+        timeline: {
+          create: { type: imported ? "tenancy.imported" : "tenancy.created", actor: "landlord" },
+        },
       },
-      timeline: {
-        create: { type: imported ? "tenancy.imported" : "tenancy.created", actor: "landlord" },
-      },
-    },
+    });
+    await syncPayments(tx, tenancy);
   });
 
   revalidatePath(`/properties/${propertyId}`);
@@ -211,22 +215,26 @@ export async function updateTenancy(
   const keptIds = new Set(kept.map((p) => p.id));
   const removedIds = [...existingIds].filter((id) => !keptIds.has(id));
 
-  await prisma.$transaction([
-    prisma.tenancy.update({ where: { id: tenancy.id }, data: termsData(data) }),
-    prisma.party.deleteMany({ where: { tenancyId: tenancy.id, id: { in: removedIds } } }),
-    ...kept.map(({ id, ...p }) =>
-      prisma.party.update({
-        where: { id: id! },
-        data: { ...p, idNumber: p.idNumber ?? null, email: p.email ?? null },
-      }),
-    ),
-    ...added.map((p) =>
-      prisma.party.create({ data: { ...withoutId(p), tenancyId: tenancy.id } }),
-    ),
-    prisma.timelineEvent.create({
-      data: { tenancyId: tenancy.id, type: "tenancy.updated", actor: "landlord" },
-    }),
-  ]);
+  await prisma.$transaction(
+    async (tx) => {
+      const updated = await tx.tenancy.update({ where: { id: tenancy.id }, data: termsData(data) });
+      await tx.party.deleteMany({ where: { tenancyId: tenancy.id, id: { in: removedIds } } });
+      for (const { id, ...p } of kept) {
+        await tx.party.update({
+          where: { id: id! },
+          data: { ...p, idNumber: p.idNumber ?? null, email: p.email ?? null },
+        });
+      }
+      for (const p of added) {
+        await tx.party.create({ data: { ...withoutId(p), tenancyId: tenancy.id } });
+      }
+      await tx.timelineEvent.create({
+        data: { tenancyId: tenancy.id, type: "tenancy.updated", actor: "landlord" },
+      });
+      await syncPayments(tx, updated);
+    },
+    { timeout: 20_000 }, // a rent change touches every remaining month
+  );
 
   revalidatePath(`/properties/${tenancy.propertyId}`);
   redirect(`/properties/${tenancy.propertyId}`);

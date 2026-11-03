@@ -17,7 +17,7 @@ export default function LoginPage({ searchParams }: PageProps<"/login">) {
           <h1 className="text-2xl font-bold">כניסה לניהול שכירות</h1>
           <p className="text-sm opacity-70">כל הדירות, הצ&apos;קים והמועדים במקום אחד</p>
         </div>
-        <Suspense fallback={<GoogleButton next="/properties" />}>
+        <Suspense fallback={<GoogleButton next="/dashboard" />}>
           <LoginForm searchParams={searchParams} />
         </Suspense>
       </div>

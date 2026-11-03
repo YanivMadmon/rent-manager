@@ -11,7 +11,7 @@ export default function LandlordLayout({ children }: LayoutProps<"/">) {
       <header className="border-b border-black/10 dark:border-white/15">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-3">
           <Link href="/properties" className="font-bold">
-            ניהול שכירות
+            הנכסים שלי
           </Link>
           <Suspense fallback={null}>
             <UserMenu />

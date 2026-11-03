@@ -1,4 +1,4 @@
-import type { PartyRole, TenancyStatus } from "@/generated/prisma/enums";
+import type { PartyRole, PaymentMethod, PaymentStatus, TenancyStatus } from "@/generated/prisma/enums";
 
 const ils = new Intl.NumberFormat("he-IL", {
   style: "currency",
@@ -13,6 +13,9 @@ export const formatILS = (agorot: number) => ils.format(agorot / 100);
 const dateFmt = new Intl.DateTimeFormat("he-IL", { timeZone: "UTC" });
 export const formatDate = (d: Date) => dateFmt.format(d);
 
+const monthFmt = new Intl.DateTimeFormat("he-IL", { timeZone: "UTC", month: "long", year: "numeric" });
+export const formatMonth = (d: Date) => monthFmt.format(d);
+
 // +972501234567 → 050-1234567
 export function formatPhone(e164: string) {
   const local = "0" + e164.replace(/^\+972/, "");
@@ -25,6 +28,22 @@ export const TENANCY_STATUS_LABEL: Record<TenancyStatus, string> = {
   ACTIVE: "פעילה",
   ENDING: "לקראת סיום",
   CLOSED: "הסתיימה",
+};
+
+export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
+  EXPECTED: "צפוי",
+  PENDING_DEPOSIT: "ממתין להפקדה",
+  DEPOSITED: "הופקד",
+  PAID: "שולם",
+  PARTIAL: "שולם חלקית",
+  LATE: "באיחור",
+  BOUNCED: "חזר",
+};
+
+export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
+  CHECK: "צ׳ק",
+  TRANSFER: "העברה",
+  CASH: "מזומן",
 };
 
 export const PARTY_ROLE_LABEL: Record<PartyRole, string> = {

@@ -7,7 +7,12 @@ import { AddPropertyButton } from "./add-property-button";
 export default function PropertiesPage() {
   return (
     <div className="space-y-8 pb-20">
-      <h1 className="text-2xl font-bold">הנכסים שלי</h1>
+      <div className="space-y-2">
+        <Link href="/dashboard" className="text-sm opacity-70 hover:underline">
+          → למסך הראשי
+        </Link>
+        <h1 className="text-2xl font-bold">הנכסים שלי</h1>
+      </div>
 
       <Suspense fallback={<p className="opacity-60">טוען נכסים...</p>}>
         <PropertyList />

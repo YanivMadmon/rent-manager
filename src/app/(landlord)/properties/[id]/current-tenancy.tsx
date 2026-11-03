@@ -40,12 +40,20 @@ export function CurrentTenancy({
             {tenancy.imported ? "שכירות קיימת שנוספה למעקב" : "שכירות חדשה"}
           </p>
         </div>
-        <Link
-          href={`/properties/${propertyId}/tenancies/${tenancy.id}/edit`}
-          className="rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10"
-        >
-          עריכה
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href={`/properties/${propertyId}/tenancies/${tenancy.id}/payments`}
+            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            תשלומים וצ׳קים
+          </Link>
+          <Link
+            href={`/properties/${propertyId}/tenancies/${tenancy.id}/edit`}
+            className="rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10"
+          >
+            עריכה
+          </Link>
+        </div>
       </div>
 
       <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -62,15 +70,6 @@ export function CurrentTenancy({
                 : "הסתיימה"
           }
           warn={!notStarted && daysLeft <= 90}
-        />
-        <Stat
-          label="אופציה להארכה"
-          value={tenancy.hasOption ? `${tenancy.optionMonths} חודשים` : "אין"}
-        />
-        <Stat
-          label="הצמדה"
-          value={tenancy.isIndexLinked ? "צמוד למדד" : "לא צמוד"}
-          hint={tenancy.isIndexLinked && tenancy.baseIndex ? `מדד בסיס ${tenancy.baseIndex.toString()}` : undefined}
         />
       </dl>
 
