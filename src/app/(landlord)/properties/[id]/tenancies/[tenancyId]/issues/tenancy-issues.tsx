@@ -81,7 +81,6 @@ export async function TenancyIssues({ tenancyId }: { tenancyId: string }) {
                 )}
                 {issue.photoPaths.length > 0 && (
                   <PhotoGallery
-                    deletable={false}
                     photos={issue.photoPaths.map((path) => ({ id: path, url: urls.get(path) ?? null }))}
                   />
                 )}

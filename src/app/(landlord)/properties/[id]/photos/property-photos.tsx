@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { createAdminClient, PHOTO_BUCKET } from "@/lib/supabase/admin";
 import { PhotoUploader } from "./photo-uploader";
+import { deletePhoto } from "./actions";
 import { PhotoGallery } from "./photo-gallery";
 
 // Caller must have verified that the property belongs to the current landlord.
@@ -32,7 +33,10 @@ export async function PropertyPhotos({ propertyId }: { propertyId: string }) {
           עוד אין תמונות לנכס. כדאי לצלם את הדירה, למשל לפני כניסת שוכר.
         </p>
       ) : (
-        <PhotoGallery photos={photos.map((p) => ({ id: p.id, url: urls.get(p.path) ?? null }))} />
+        <PhotoGallery
+          photos={photos.map((p) => ({ id: p.id, url: urls.get(p.path) ?? null }))}
+          onDelete={deletePhoto}
+        />
       )}
     </section>
   );

@@ -41,6 +41,17 @@ export function CurrentTenancy({
             <span className="rounded-full bg-blue-600 px-3 py-0.5 text-xs font-medium text-white">
               {TENANCY_STATUS_LABEL[tenancy.status]}
             </span>
+            <Link
+              href={`/properties/${propertyId}/tenancies/${tenancy.id}/edit`}
+              aria-label="עריכת השכירות"
+              title="עריכת השכירות"
+              className="rounded-md p-1.5 opacity-60 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+            </Link>
           </div>
           <p className="text-sm opacity-70">
             {tenancy.imported ? "שכירות קיימת שנוספה למעקב" : "שכירות חדשה"}
@@ -60,10 +71,10 @@ export function CurrentTenancy({
             ציר זמן
           </Link>
           <Link
-            href={`/properties/${propertyId}/tenancies/${tenancy.id}/edit`}
+            href={`/properties/${propertyId}/tenancies/${tenancy.id}/handover`}
             className="rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10"
           >
-            עריכה
+            {tenancy.status === "ENDING" ? "המשך המסירה" : "תהליך מסירה"}
           </Link>
         </div>
       </div>

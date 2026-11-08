@@ -15,3 +15,4 @@ export const PHOTO_BUCKET = "property-photos";
 export const PROOF_BUCKET = "payment-proofs";
 export const ISSUE_BUCKET = "issue-photos";
 export const FILES_BUCKET = "tenancy-files";
+export const INSPECTION_BUCKET = "inspection-photos";

@@ -8,10 +8,10 @@ const SWIPE_THRESHOLD_PX = 50;
 // Thumbnail grid that opens photos over the page, so viewing never leaves it.
 export function PhotoGallery({
   photos,
-  deletable = true,
+  onDelete,
 }: {
   photos: { id: string; url: string | null }[];
-  deletable?: boolean;
+  onDelete?: (photoId: string) => Promise<unknown>;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const touchStartX = useRef<number | null>(null);
@@ -48,10 +48,10 @@ export function PhotoGallery({
               >
                 {/* Signed URLs change hourly, so next/image caching adds nothing here. */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={photo.url} alt="תמונת הנכס" loading="lazy" className="h-full w-full object-cover" />
+                <img src={photo.url} alt="תמונה" loading="lazy" className="h-full w-full object-cover" />
               </button>
             )}
-            {deletable && <DeletePhotoButton photoId={photo.id} />}
+            {onDelete && <DeletePhotoButton photoId={photo.id} onDelete={onDelete} />}
           </li>
         ))}
       </ul>
@@ -82,7 +82,7 @@ export function PhotoGallery({
             className="relative flex h-full w-full items-center justify-center p-4"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={active.url ?? undefined} alt="תמונת הנכס" className="max-h-full max-w-full object-contain" />
+            <img src={active.url ?? undefined} alt="תמונה" className="max-h-full max-w-full object-contain" />
 
             <button
               type="button"

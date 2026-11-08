@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { findLink } from "@/lib/magic-links";
+import { InspectionReport } from "./inspection-report";
 import { IssueReport } from "./issue-report";
 import { LinkMessage } from "./link-message";
 import { PaymentReport } from "./payment-report";
@@ -30,5 +31,6 @@ async function TenantLink({ params }: Pick<PageProps<"/l/[token]">, "params">) {
   const link = await findLink(token);
   if (link?.purpose === "CONFIRM_PAYMENT") return <PaymentReport link={link} token={token} />;
   if (link?.purpose === "REPORT_ISSUE") return <IssueReport link={link} token={token} />;
+  if (link?.purpose === "APPROVE_INSPECTION") return <InspectionReport link={link} token={token} />;
   return <LinkMessage title="הקישור לא תקף" body="אפשר לבקש קישור חדש מבעל הדירה." />;
 }

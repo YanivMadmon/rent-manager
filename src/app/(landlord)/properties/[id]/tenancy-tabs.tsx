@@ -20,7 +20,7 @@ export function TenancyTabs({ tabs }: { tabs: Tab[] }) {
             aria-selected={active === tab.id}
             aria-controls={`panel-${tab.id}`}
             onClick={() => setActive(tab.id)}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${
+            className={`-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium ${
               active === tab.id
                 ? "border-blue-600 text-blue-700 dark:text-blue-400"
                 : "border-transparent opacity-70 hover:opacity-100"

@@ -84,22 +84,24 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
           <h2 className="text-lg font-semibold">שכירויות קודמות</h2>
           <ul className="space-y-2">
             {past.map((t) => (
-              <li
-                key={t.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 p-4 dark:border-white/15"
-              >
-                <div className="space-y-1">
-                  <p className="font-semibold">
-                    {t.parties.filter((p) => p.role === "TENANT").map((p) => p.fullName).join(", ") ||
-                      "ללא שוכר"}
-                  </p>
-                  <p className="text-sm opacity-70">
-                    {formatDate(t.startDate)} – {formatDate(t.endDate)} · {formatILS(t.monthlyRent)} לחודש
-                  </p>
-                </div>
-                <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-medium dark:bg-white/10">
-                  {TENANCY_STATUS_LABEL[t.status]}
-                </span>
+              <li key={t.id}>
+                <Link
+                  href={`/properties/${property.id}/tenancies/${t.id}/handover`}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-black/10 p-4 hover:border-blue-500 dark:border-white/15"
+                  >
+                  <div className="space-y-1">
+                    <p className="font-semibold">
+                      {t.parties.filter((p) => p.role === "TENANT").map((p) => p.fullName).join(", ") ||
+                        "ללא שוכר"}
+                    </p>
+                    <p className="text-sm opacity-70">
+                      {formatDate(t.startDate)} – {formatDate(t.endDate)} · {formatILS(t.monthlyRent)} לחודש
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-medium dark:bg-white/10">
+                    {TENANCY_STATUS_LABEL[t.status]}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

@@ -307,6 +307,7 @@ model Inspection {
   tenancy          Tenancy           @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
   kind             InspectionKind
   tenantApprovedAt DateTime?
+  tenantNote       String?
   createdAt        DateTime          @default(now())
   photos           InspectionPhoto[]
 
