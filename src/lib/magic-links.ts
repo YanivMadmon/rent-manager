@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash, createHmac, randomBytes } from "node:crypto";
-import { headers } from "next/headers";
 import type { MagicLinkPurpose } from "@/generated/prisma/enums";
+import { appOrigin } from "@/lib/app-url";
 import { prisma } from "@/lib/prisma";
 
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
@@ -22,8 +22,7 @@ export function stableToken(scope: string) {
 }
 
 export async function linkUrl(token: string) {
-  const origin = process.env.NEXT_PUBLIC_APP_URL ?? (await headers()).get("origin") ?? "";
-  return `${origin}/l/${token}`;
+  return `${await appOrigin()}/l/${token}`;
 }
 
 // Returns the link even when already used, so its page can say so.

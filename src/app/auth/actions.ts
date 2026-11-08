@@ -1,14 +1,13 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { appOrigin } from "@/lib/app-url";
 import { createClient } from "@/lib/supabase/server";
 import { safeNext } from "@/lib/safe-next";
 
 export async function signInWithGoogle(formData: FormData) {
   const next = safeNext(formData.get("next")?.toString());
-  const origin =
-    process.env.NEXT_PUBLIC_APP_URL ?? (await headers()).get("origin") ?? "";
+  const origin = await appOrigin();
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
