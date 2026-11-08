@@ -3,7 +3,12 @@ import Link from "next/link";
 import { PreparedMessage } from "@/components/prepared-message";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatDate, formatILS, formatMonth, ISSUE_STATUS_LABEL } from "@/lib/format";
+import {
+  formatDate,
+  formatILS,
+  formatMonth,
+  ISSUE_STATUS_LABEL,
+} from "@/lib/format";
 import { daysLeft, deadlineLabel, issueDeadline } from "@/lib/issues";
 import {
   daysLate,

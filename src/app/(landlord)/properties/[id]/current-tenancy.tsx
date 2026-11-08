@@ -8,6 +8,7 @@ import {
   PARTY_ROLE_LABEL,
   TENANCY_STATUS_LABEL,
 } from "@/lib/format";
+import { TenancyTabs } from "./tenancy-tabs";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -15,11 +16,13 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export function CurrentTenancy({
   propertyId,
   tenancy,
-  children,
+  issues,
+  files,
 }: {
   propertyId: string;
   tenancy: Tenancy & { parties: Party[] };
-  children: ReactNode;
+  issues: ReactNode;
+  files: ReactNode;
 }) {
   // Rendered at request time (behind the session read), so "now" is safe here.
   const today = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
@@ -65,30 +68,42 @@ export function CurrentTenancy({
         </div>
       </div>
 
-      <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label="שכר דירה" value={formatILS(tenancy.monthlyRent)} hint="לחודש" />
-        <Stat label="יום תשלום" value={`${tenancy.paymentDay} בחודש`} />
-        <Stat label="תקופה" value={`${formatDate(tenancy.startDate)} – ${formatDate(tenancy.endDate)}`} />
-        <Stat
-          label={notStarted ? "מתחילה בעוד" : "נותרו"}
-          value={
-            notStarted
-              ? `${Math.round((tenancy.startDate.getTime() - today) / DAY_MS)} ימים`
-              : daysLeft >= 0
-                ? `${daysLeft} ימים`
-                : "הסתיימה"
-          }
-          warn={!notStarted && daysLeft <= 90}
-        />
-      </dl>
+      <TenancyTabs
+        tabs={[
+          {
+            id: "details",
+            label: "פרטים",
+            content: (
+              <div className="space-y-5">
+                <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <Stat label="שכר דירה" value={formatILS(tenancy.monthlyRent)} hint="לחודש" />
+                  <Stat label="יום תשלום" value={`${tenancy.paymentDay} בחודש`} />
+                  <Stat label="תקופה" value={`${formatDate(tenancy.startDate)} – ${formatDate(tenancy.endDate)}`} />
+                  <Stat
+                    label={notStarted ? "מתחילה בעוד" : "נותרו"}
+                    value={
+                      notStarted
+                        ? `${Math.round((tenancy.startDate.getTime() - today) / DAY_MS)} ימים`
+                        : daysLeft >= 0
+                          ? `${daysLeft} ימים`
+                          : "הסתיימה"
+                    }
+                    warn={!notStarted && daysLeft <= 90}
+                  />
+                </dl>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {[...tenants, ...guarantors].map((p) => (
-          <PartyCard key={p.id} party={p} />
-        ))}
-      </div>
-
-      {children}
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {[...tenants, ...guarantors].map((p) => (
+                    <PartyCard key={p.id} party={p} />
+                  ))}
+                </div>
+              </div>
+            ),
+          },
+          { id: "issues", label: "תקלות", content: issues },
+          { id: "files", label: "קבצים", content: files },
+        ]}
+      />
     </section>
   );
 }

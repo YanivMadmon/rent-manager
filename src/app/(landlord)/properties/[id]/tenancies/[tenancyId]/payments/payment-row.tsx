@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { FileLink } from "@/components/file-link";
 import { PreparedMessage } from "@/components/prepared-message";
 import type { PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
 import {
@@ -21,7 +22,6 @@ import {
   updateCheck,
   type ActionResult,
 } from "./actions";
-import { ProofLink } from "./proof-link";
 
 const STATUS_STYLE: Record<PaymentStatus, string> = {
   EXPECTED: "bg-black/5 dark:bg-white/10",
@@ -108,7 +108,7 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
           {reportedMethod && ` (${PAYMENT_METHOD_LABEL[reportedMethod]})`}
         </p>
       )}
-      {proof?.url && <ProofLink url={proof.url} isPdf={proof.isPdf} />}
+      {proof?.url && <FileLink url={proof.url} isPdf={proof.isPdf} label="צפייה באסמכתה" />}
 
       <div className="flex flex-wrap gap-2">
         {canRecord && (

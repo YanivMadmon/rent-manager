@@ -30,9 +30,8 @@ export async function TenancyIssues({ tenancyId }: { tenancyId: string }) {
   const now = new Date();
 
   return (
-    <section className="space-y-4 border-t border-blue-600/20 pt-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">תקלות</h2>
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-center justify-end gap-3">
         {tenancy.status !== "CLOSED" && (
           <PreparedMessage
             prepare={createIssueLink.bind(null, tenancy.id)}

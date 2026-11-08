@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { formatDate, formatILS, TENANCY_STATUS_LABEL } from "@/lib/format";
 import { CurrentTenancy } from "./current-tenancy";
 import { PropertyPhotos } from "./photos/property-photos";
+import { TenancyFiles } from "./tenancies/[tenancyId]/files/tenancy-files";
 import { TenancyIssues } from "./tenancies/[tenancyId]/issues/tenancy-issues";
 
 export default function PropertyPage({ params }: PageProps<"/properties/[id]">) {
@@ -52,11 +53,20 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
       </Suspense>
 
       {current ? (
-        <CurrentTenancy propertyId={property.id} tenancy={current}>
-          <Suspense fallback={<p className="opacity-60">טוען תקלות...</p>}>
-            <TenancyIssues tenancyId={current.id} />
-          </Suspense>
-        </CurrentTenancy>
+        <CurrentTenancy
+          propertyId={property.id}
+          tenancy={current}
+          issues={
+            <Suspense fallback={<p className="opacity-60">טוען תקלות...</p>}>
+              <TenancyIssues tenancyId={current.id} />
+            </Suspense>
+          }
+          files={
+            <Suspense fallback={<p className="opacity-60">טוען קבצים...</p>}>
+              <TenancyFiles tenancyId={current.id} />
+            </Suspense>
+          }
+        />
       ) : (
         <section className="space-y-3 rounded-2xl border border-dashed border-black/20 p-6 text-center dark:border-white/20">
           <p className="opacity-80">אין שכירות פעילה בנכס.</p>

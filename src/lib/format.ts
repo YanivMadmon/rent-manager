@@ -1,4 +1,5 @@
 import type {
+  DocumentCategory,
   IssueStatus,
   PartyRole,
   PaymentMethod,
@@ -57,6 +58,12 @@ export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {
   CHECK: "צ׳ק",
   TRANSFER: "העברה",
   CASH: "מזומן",
+};
+
+export const DOCUMENT_CATEGORY_LABEL: Record<DocumentCategory, string> = {
+  CONTRACT: "חוזה",
+  GUARANTEE: "ביטחונות",
+  OTHER: "קבצים נוספים",
 };
 
 export const ISSUE_STATUS_LABEL: Record<IssueStatus, string> = {

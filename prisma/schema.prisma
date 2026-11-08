@@ -75,6 +75,12 @@ enum UtilityType {
   GAS
 }
 
+enum DocumentCategory {
+  CONTRACT
+  GUARANTEE
+  OTHER
+}
+
 enum MagicLinkPurpose {
   SIGN_CONTRACT
   CONFIRM_PAYMENT
@@ -357,17 +363,18 @@ model TimelineEvent {
 }
 
 model Document {
-  id         String    @id @default(cuid())
+  id         String           @id @default(cuid())
   ownerId    String
-  owner      User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner      User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   propertyId String?
-  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property   Property?        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   tenancyId  String?
-  tenancy    Tenancy?  @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  tenancy    Tenancy?         @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
   name       String
+  category   DocumentCategory @default(OTHER)
   path       String
   mimeType   String
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime         @default(now())
 
   @@index([ownerId])
 }
