@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { deleteFile } from "./actions";
+import { TrashIcon } from "@/components/icons";
 
 export function DeleteFileButton({ documentId }: { documentId: string }) {
   const [pending, startTransition] = useTransition();
@@ -17,9 +18,10 @@ export function DeleteFileButton({ documentId }: { documentId: string }) {
           await deleteFile(documentId);
         });
       }}
-      className="shrink-0 rounded-md px-2 text-sm opacity-60 hover:bg-black/5 hover:opacity-100 disabled:opacity-40 dark:hover:bg-white/10"
+      title="מחיקת קובץ"
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-sunken hover:text-red-700 disabled:opacity-40 dark:hover:text-red-400"
     >
-      {pending ? "..." : "✕"}
+      <TrashIcon className="h-4 w-4" />
     </button>
   );
 }

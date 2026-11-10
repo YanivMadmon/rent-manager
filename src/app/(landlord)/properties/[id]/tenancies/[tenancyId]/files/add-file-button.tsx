@@ -5,12 +5,14 @@ import type { DocumentCategory } from "@/generated/prisma/enums";
 import { DOCUMENT_CATEGORY_LABEL } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import { addFile, requestFileUpload } from "./actions";
+import { CloseIcon, PaperclipIcon } from "@/components/icons";
+import { buttonSecondary } from "@/components/ui";
 
 const BUCKET = "tenancy-files";
 const ACCEPT =
   "application/pdf,image/jpeg,image/png,image/webp,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const fieldClass =
-  "w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/20";
+  "w-full rounded-lg border border-line-strong bg-transparent px-3 py-2 text-sm";
 
 const withoutExtension = (fileName: string) => fileName.replace(/\.[^.]+$/, "");
 
@@ -60,8 +62,9 @@ export function AddFileButton({ tenancyId }: { tenancyId: string }) {
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10"
+        className={buttonSecondary}
       >
+        <PaperclipIcon className="h-4 w-4 text-muted" />
         העלאת קובץ
       </button>
 
@@ -69,7 +72,7 @@ export function AddFileButton({ tenancyId }: { tenancyId: string }) {
         ref={dialogRef}
         aria-labelledby="add-file-title"
         onClick={(e) => e.target === dialogRef.current && close()}
-        className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl bg-background p-0 text-foreground backdrop:bg-black/50"
+        className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl bg-surface p-0 text-ink backdrop:bg-black/50"
       >
         <form ref={formRef} action={submit} className="space-y-4 p-6">
           <div className="flex items-center justify-between">
@@ -80,14 +83,14 @@ export function AddFileButton({ tenancyId }: { tenancyId: string }) {
               type="button"
               onClick={close}
               aria-label="סגירה"
-              className="rounded-md px-2 py-1 text-lg hover:bg-black/5 dark:hover:bg-white/10"
+              className="-me-2 flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-sunken hover:text-ink"
             >
-              ✕
+              <CloseIcon />
             </button>
           </div>
 
           <label className="block space-y-1 text-sm">
-            <span className="opacity-70">קובץ (PDF, Word או תמונה)</span>
+            <span className="text-muted">קובץ (PDF, Word או תמונה)</span>
             <input
               name="file"
               type="file"
@@ -99,14 +102,14 @@ export function AddFileButton({ tenancyId }: { tenancyId: string }) {
               }}
               className="peer sr-only"
             />
-            <span className="block truncate rounded-lg border border-black/15 px-3 py-2 peer-focus-visible:outline-2 peer-focus-visible:outline-blue-600 dark:border-white/20">
+            <span className="block truncate rounded-lg border border-line-strong px-3 py-2 peer-focus-visible:outline-2 peer-focus-visible:outline-blue-600">
               {fileName ?? "בחירת קובץ"}
             </span>
           </label>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1 text-sm">
-              <span className="opacity-70">סוג</span>
+              <span className="text-muted">סוג</span>
               <select name="category" className={fieldClass}>
                 {(Object.keys(DOCUMENT_CATEGORY_LABEL) as DocumentCategory[]).map((category) => (
                   <option key={category} value={category}>
@@ -116,7 +119,7 @@ export function AddFileButton({ tenancyId }: { tenancyId: string }) {
               </select>
             </label>
             <label className="block space-y-1 text-sm">
-              <span className="opacity-70">שם</span>
+              <span className="text-muted">שם</span>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}

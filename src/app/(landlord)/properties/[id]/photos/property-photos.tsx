@@ -29,7 +29,7 @@ export async function PropertyPhotos({ propertyId }: { propertyId: string }) {
       </div>
 
       {photos.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-black/20 p-6 text-center text-sm opacity-80 dark:border-white/20">
+        <p className="rounded-xl border border-dashed border-line-strong p-6 text-center text-sm text-muted">
           עוד אין תמונות לנכס. כדאי לצלם את הדירה, למשל לפני כניסת שוכר.
         </p>
       ) : (

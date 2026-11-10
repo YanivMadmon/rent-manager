@@ -17,14 +17,14 @@ export function InspectionRooms({
         <section key={room.name} className="space-y-2">
           <h3 className="font-semibold">{room.name}</h3>
           {room.notes.map((note) => (
-            <p key={note} className="whitespace-pre-wrap break-words text-sm opacity-80">
+            <p key={note} className="whitespace-pre-wrap break-words text-sm text-muted">
               {note}
             </p>
           ))}
           {room.landlord.length > 0 && <PhotoGallery photos={room.landlord} onDelete={onDelete} />}
           {room.tenant.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium opacity-70">תמונות שהוסיף השוכר</p>
+              <p className="text-sm font-medium text-muted">תמונות שהוסיף השוכר</p>
               <PhotoGallery photos={room.tenant} />
             </div>
           )}

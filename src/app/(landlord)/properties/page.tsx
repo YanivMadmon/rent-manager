@@ -2,19 +2,15 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Chevron, EmptyState, Panel, Pill } from "@/components/ui";
 import { AddPropertyButton } from "./add-property-button";
 
 export default function PropertiesPage() {
   return (
-    <div className="space-y-8 pb-20">
-      <div className="space-y-2">
-        <Link href="/dashboard" className="text-sm opacity-70 hover:underline">
-          → למסך הראשי
-        </Link>
-        <h1 className="text-2xl font-bold">הנכסים שלי</h1>
-      </div>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold">הנכסים שלי</h1>
 
-      <Suspense fallback={<p className="opacity-60">טוען נכסים...</p>}>
+      <Suspense fallback={<p className="text-muted">טוען נכסים...</p>}>
         <PropertyList />
       </Suspense>
 
@@ -38,31 +34,29 @@ async function PropertyList() {
 
   if (properties.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-black/20 p-6 text-center opacity-80 dark:border-white/20">
-        עוד אין נכסים. לחץ על + כדי להוסיף את הדירה הראשונה שלך.
-      </p>
+      <EmptyState>עוד אין נכסים. אפשר להוסיף את הדירה הראשונה בכפתור ה־+ בפינה.</EmptyState>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <p className="opacity-70">{properties.length} נכסים</p>
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {properties.map((p) => (
-          <li key={p.id}>
-            <Link
-              href={`/properties/${p.id}`}
-              className="block rounded-xl border border-black/10 p-4 hover:border-blue-500 dark:border-white/15"
-            >
-              <p className="font-semibold">{p.address}</p>
-              <p className="text-sm opacity-70">{p.city}</p>
-              <p className="mt-2 text-sm">
-                {p.tenancies.length > 0 ? "מושכרת" : "אין שכירות פעילה"}
-              </p>
-            </Link>
-          </li>
-        ))}
+    <Panel>
+      <ul className="divide-y divide-line">
+        {properties.map((p) => {
+          const rented = p.tenancies.length > 0;
+          return (
+            <li key={p.id}>
+              <Link href={`/properties/${p.id}`} className="flex items-center gap-3 p-4 hover:bg-sunken">
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <p className="truncate font-medium">{p.address}</p>
+                  <p className="text-sm text-muted">{p.city}</p>
+                </div>
+                <Pill tone={rented ? "good" : "neutral"}>{rented ? "מושכרת" : "פנויה"}</Pill>
+                <Chevron />
+              </Link>
+            </li>
+          );
+        })}
       </ul>
-    </div>
+    </Panel>
   );
 }

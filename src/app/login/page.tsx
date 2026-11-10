@@ -12,10 +12,10 @@ const ERRORS: Record<string, string> = {
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <main className="flex flex-1 items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-black/10 p-8 text-center dark:border-white/15">
+      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-line p-8 text-center">
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold">כניסה לניהול שכירות</h1>
-          <p className="text-sm opacity-70">כל הדירות, הצ&apos;קים והמועדים במקום אחד</p>
+          <h1 className="text-2xl font-semibold">כניסה לניהול שכירות</h1>
+          <p className="text-sm text-muted">כל הדירות, הצ&apos;קים והמועדים במקום אחד</p>
         </div>
         <Suspense fallback={<GoogleButton next="/dashboard" />}>
           <LoginForm searchParams={searchParams} />
@@ -48,7 +48,7 @@ function GoogleButton({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <button
         type="submit"
-        className="flex w-full items-center justify-center gap-3 rounded-lg border border-black/15 bg-white px-4 py-3 font-medium text-gray-800 hover:bg-gray-50 dark:border-white/20"
+        className="flex w-full items-center justify-center gap-3 rounded-lg border border-line-strong bg-surface px-4 py-3 font-medium text-gray-800 hover:bg-gray-50"
       >
         <GoogleIcon />
         המשך עם Google

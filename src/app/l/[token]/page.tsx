@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default function TenantLinkPage({ params }: PageProps<"/l/[token]">) {
   return (
     <main className="mx-auto w-full max-w-md flex-1 space-y-6 px-4 py-10">
-      <Suspense fallback={<p className="opacity-60">טוען...</p>}>
+      <Suspense fallback={<p className="text-muted">טוען...</p>}>
         <TenantLink params={params} />
       </Suspense>
     </main>

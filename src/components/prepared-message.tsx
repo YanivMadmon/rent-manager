@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { WhatsAppIcon } from "@/components/icons";
 
 type Prepared = { whatsappUrl: string; message: string };
 
@@ -30,14 +31,15 @@ export function PreparedMessage({
 
   if (prepared) {
     return (
-      <div className="w-full space-y-2 rounded-lg bg-black/5 p-3 text-sm dark:bg-white/10">
-        <p className="break-words">{prepared.message}</p>
+      <div className="w-full space-y-3 rounded-xl border border-line bg-canvas p-3 text-sm">
+        <p className="whitespace-pre-wrap break-words">{prepared.message}</p>
         <a
           href={prepared.whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block rounded-lg bg-green-700 px-3 py-1.5 font-medium text-white hover:bg-green-800"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-green-700 px-4 font-medium text-white hover:bg-green-800"
         >
+          <WhatsAppIcon />
           שליחה בוואטסאפ
         </a>
       </div>
@@ -46,7 +48,13 @@ export function PreparedMessage({
 
   return (
     <>
-      <button type="button" disabled={pending} className={className} onClick={run}>
+      <button
+        type="button"
+        disabled={pending}
+        className={`inline-flex items-center gap-2 ${className}`}
+        onClick={run}
+      >
+        <WhatsAppIcon className="h-4 w-4" />
         {pending ? "מכין..." : label}
       </button>
       {error && <p className="w-full text-sm text-red-700 dark:text-red-400">{error}</p>}

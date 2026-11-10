@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { DeletePhotoButton } from "./delete-photo-button";
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon } from "@/components/icons";
 
 const SWIPE_THRESHOLD_PX = 50;
 
@@ -37,7 +38,7 @@ export function PhotoGallery({
         {photos.map((photo) => (
           <li
             key={photo.id}
-            className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-black/5 dark:bg-white/10"
+            className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-sunken"
           >
             {photo.url && (
               <button
@@ -90,7 +91,7 @@ export function PhotoGallery({
               aria-label="סגירה"
               className="absolute top-4 left-4 flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-xl hover:bg-black/80"
             >
-              ✕
+              <CloseIcon />
             </button>
 
             {viewable.length > 1 && (
@@ -105,7 +106,7 @@ export function PhotoGallery({
                   dir="ltr"
                   className="absolute top-1/2 right-4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-2xl hover:bg-black/80"
                 >
-                  ›
+                  <ChevronRightIcon className="h-6 w-6" />
                 </button>
                 <button
                   type="button"
@@ -114,7 +115,7 @@ export function PhotoGallery({
                   dir="ltr"
                   className="absolute top-1/2 left-4 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-2xl hover:bg-black/80"
                 >
-                  ‹
+                  <ChevronLeftIcon className="h-6 w-6" />
                 </button>
               </>
             )}

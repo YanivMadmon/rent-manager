@@ -1,10 +1,9 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
+import { buttonPrimary, fieldClass } from "@/components/ui";
 import { addCheckSeries } from "./actions";
-
-const fieldClass =
-  "w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/20";
+import { CloseIcon, PlusIcon } from "@/components/icons";
 
 // Quick entry: a whole series of checks from the details of the first one.
 export function AddChecksButton({ tenancyId, defaultDate }: { tenancyId: string; defaultDate: string }) {
@@ -32,8 +31,9 @@ export function AddChecksButton({ tenancyId, defaultDate }: { tenancyId: string;
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        className={buttonPrimary}
       >
+        <PlusIcon className="h-4 w-4" />
         הוספת צ׳קים
       </button>
 
@@ -41,7 +41,7 @@ export function AddChecksButton({ tenancyId, defaultDate }: { tenancyId: string;
         ref={dialogRef}
         aria-labelledby="add-checks-title"
         onClick={(e) => e.target === dialogRef.current && close()}
-        className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl bg-background p-0 text-foreground backdrop:bg-black/50"
+        className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-line bg-surface p-0 text-ink backdrop:bg-black/40"
       >
         <form action={submit} className="space-y-4 p-6">
           <div className="flex items-center justify-between">
@@ -52,12 +52,12 @@ export function AddChecksButton({ tenancyId, defaultDate }: { tenancyId: string;
               type="button"
               onClick={close}
               aria-label="סגירה"
-              className="rounded-md px-2 py-1 text-lg hover:bg-black/5 dark:hover:bg-white/10"
+              className="-me-2 flex h-11 w-11 items-center justify-center rounded-lg text-lg text-muted hover:bg-sunken hover:text-ink"
             >
-              ✕
+              <CloseIcon />
             </button>
           </div>
-          <p className="text-sm opacity-70">
+          <p className="text-sm text-muted">
             מזינים את פרטי הצ׳ק הראשון, והמערכת משלימה את הסדרה לפי החודשים.
           </p>
 
@@ -87,9 +87,9 @@ export function AddChecksButton({ tenancyId, defaultDate }: { tenancyId: string;
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+            className={`${buttonPrimary} w-full`}
           >
-            {pending ? "שומר..." : "הוספה"}
+            {pending ? "שומר..." : "הוספת הצ׳קים"}
           </button>
         </form>
       </dialog>
@@ -99,8 +99,8 @@ export function AddChecksButton({ tenancyId, defaultDate }: { tenancyId: string;
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="space-y-1 text-sm">
-      <span className="opacity-70">{label}</span>
+    <label className="block space-y-1 text-sm">
+      <span className="text-muted">{label}</span>
       {children}
     </label>
   );

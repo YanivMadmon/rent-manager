@@ -1,8 +1,8 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InspectionRooms } from "@/components/inspection-rooms";
 import { PreparedMessage } from "@/components/prepared-message";
+import { BackLink, buttonSecondary } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { signPhotoUrls } from "@/lib/inspection-photos";
@@ -15,7 +15,7 @@ type Props = PageProps<"/properties/[id]/tenancies/[tenancyId]/handover">;
 
 export default function HandoverPage({ params }: Props) {
   return (
-    <Suspense fallback={<p className="opacity-60">טוען...</p>}>
+    <Suspense fallback={<p className="text-muted">טוען...</p>}>
       <Handover params={params} />
     </Suspense>
   );
@@ -49,13 +49,11 @@ async function Handover({ params }: Pick<Props, "params">) {
 
   return (
     <div className="space-y-6">
-      <Link href={`/properties/${id}`} className="text-sm opacity-70 hover:underline">
-        → {tenancy.property.address}
-      </Link>
+      <BackLink href={`/properties/${id}`}>{tenancy.property.address}</BackLink>
 
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">תהליך מסירה</h1>
-        <p className="text-sm opacity-70">
+        <h1 className="text-2xl font-semibold">תהליך מסירה</h1>
+        <p className="text-sm text-muted">
           {tenancy.parties.map((p) => p.fullName).join(", ")} · {formatDate(tenancy.startDate)} –{" "}
           {formatDate(tenancy.endDate)}
         </p>
@@ -69,7 +67,7 @@ async function Handover({ params }: Pick<Props, "params">) {
 
       <ol className="space-y-4">
         <Step number={1} title="צילום הדירה" done={photos.length > 0}>
-          <p className="text-sm opacity-70">
+          <p className="text-sm text-muted">
             מצלמים כל חדר במצבו ביום המסירה, עם הערות על נזקים אם יש.
           </p>
           {editable && (
@@ -87,14 +85,14 @@ async function Handover({ params }: Pick<Props, "params">) {
             </div>
           ) : (
             <>
-              <p className="text-sm opacity-70">
+              <p className="text-sm text-muted">
                 השוכר מקבל קישור, רואה את התמונות, יכול להוסיף משלו ומאשר. אחרי האישור הפרוטוקול ננעל.
               </p>
               {editable && photos.length > 0 && (
                 <PreparedMessage
                   prepare={createInspectionLink.bind(null, tenancy.id)}
                   label="שליחה לאישור השוכר"
-                  className="rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm hover:bg-black/5 disabled:opacity-60 dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10"
+                  className={buttonSecondary}
                 />
               )}
             </>
@@ -103,10 +101,10 @@ async function Handover({ params }: Pick<Props, "params">) {
 
         <Step number={3} title="סגירת השכירות" done={closed}>
           {closed ? (
-            <p className="text-sm opacity-70">השכירות סגורה. ציר הזמן, הקבצים והפרוטוקול נשמרים בארכיון.</p>
+            <p className="text-sm text-muted">השכירות סגורה. ציר הזמן, הקבצים והפרוטוקול נשמרים בארכיון.</p>
           ) : (
             <>
-              <p className="text-sm opacity-70">
+              <p className="text-sm text-muted">
                 {approved
                   ? "הכל מוכן. הסגירה מעבירה את השכירות לארכיון."
                   : "אפשר לסגור גם בלי אישור השוכר, אבל פרוטוקול מאושר מגן עליך במחלוקת על הפיקדון."}
@@ -142,7 +140,7 @@ function Step({
   children: React.ReactNode;
 }) {
   return (
-    <li className="flex gap-3 rounded-xl border border-black/10 p-4 dark:border-white/15">
+    <li className="flex gap-3 rounded-xl border border-line p-4">
       <span
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
           done ? "bg-green-600 text-white" : "bg-black/10 dark:bg-white/15"

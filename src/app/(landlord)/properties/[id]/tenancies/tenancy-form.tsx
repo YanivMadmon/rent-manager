@@ -19,7 +19,7 @@ const emptyParty = (role: Party["role"]): Party => ({
 });
 
 const inputClass =
-  "w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 aria-[invalid=true]:border-red-500 dark:border-white/20";
+  "w-full rounded-lg border border-line-strong bg-transparent px-3 py-2 aria-[invalid=true]:border-red-500";
 
 const EMPTY_FORM: TenancyFormInput = {
   mode: "existing",
@@ -103,7 +103,7 @@ export function TenancyForm({
         {err("parties") && <p className="text-sm text-red-600">{err("parties")}</p>}
 
         {values.parties.map((p, i) => (
-          <div key={p.id ?? `new-${i}`} className="space-y-3 rounded-xl border border-black/10 p-4 dark:border-white/15">
+          <div key={p.id ?? `new-${i}`} className="space-y-3 rounded-xl border border-line p-4">
             <div className="flex items-center justify-between">
               <span className="font-medium">{p.role === "TENANT" ? "שוכר" : "ערב"}</span>
               {values.parties.length > 1 && (
@@ -164,14 +164,14 @@ export function TenancyForm({
           <button
             type="button"
             onClick={() => addParty("TENANT")}
-            className="rounded-lg border border-black/15 px-3 py-1.5 hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+            className="rounded-lg border border-line-strong px-3 py-1.5 hover:bg-sunken"
           >
             + שוכר נוסף
           </button>
           <button
             type="button"
             onClick={() => addParty("GUARANTOR")}
-            className="rounded-lg border border-black/15 px-3 py-1.5 hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+            className="rounded-lg border border-line-strong px-3 py-1.5 hover:bg-sunken"
           >
             + ערב
           </button>
@@ -305,14 +305,14 @@ function ModeOption({
   return (
     <label
       className={`cursor-pointer space-y-1 rounded-xl border p-4 ${
-        checked ? "border-blue-600 bg-blue-50 dark:bg-blue-950/40" : "border-black/10 dark:border-white/15"
+        checked ? "border-blue-600 bg-blue-50 dark:bg-blue-950/40" : "border-line"
       }`}
     >
       <span className="flex items-center gap-2 font-medium">
         <input type="radio" name="mode" checked={checked} onChange={onChange} />
         {title}
       </span>
-      <span className="block text-sm opacity-70">{description}</span>
+      <span className="block text-sm text-muted">{description}</span>
     </label>
   );
 }

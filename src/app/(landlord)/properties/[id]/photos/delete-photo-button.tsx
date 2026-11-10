@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { TrashIcon } from "@/components/icons";
 
 export function DeletePhotoButton({
   photoId,
@@ -22,9 +23,12 @@ export function DeletePhotoButton({
           await onDelete(photoId);
         });
       }}
-      className="absolute top-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-sm text-white transition focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-60"
+      title="מחיקת תמונה"
+      className="absolute top-1 left-1 flex h-11 w-11 items-center justify-center rounded-full text-white transition focus:opacity-100 disabled:opacity-60 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
     >
-      {pending ? "..." : "✕"}
+      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/60">
+        <TrashIcon className="h-4 w-4" />
+      </span>
     </button>
   );
 }

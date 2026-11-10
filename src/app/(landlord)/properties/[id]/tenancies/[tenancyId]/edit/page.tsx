@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Link from "next/link";
+import { BackLink } from "@/components/ui";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -11,7 +11,7 @@ type Props = PageProps<"/properties/[id]/tenancies/[tenancyId]/edit">;
 
 export default function EditTenancyPage({ params }: Props) {
   return (
-    <Suspense fallback={<p className="opacity-60">טוען...</p>}>
+    <Suspense fallback={<p className="text-muted">טוען...</p>}>
       <EditTenancy params={params} />
     </Suspense>
   );
@@ -55,12 +55,10 @@ async function EditTenancy({ params }: Pick<Props, "params">) {
   const { property } = tenancy;
   return (
     <div className="space-y-6">
-      <Link href={`/properties/${property.id}`} className="text-sm opacity-70 hover:underline">
-        → {property.address}
-      </Link>
+      <BackLink href={`/properties/${property.id}`}>{property.address}</BackLink>
       <div>
-        <h1 className="text-2xl font-bold">עריכת שכירות</h1>
-        <p className="opacity-70">
+        <h1 className="text-2xl font-semibold">עריכת שכירות</h1>
+        <p className="text-muted">
           {property.address}, {property.city}
         </p>
       </div>

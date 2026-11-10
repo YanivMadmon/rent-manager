@@ -26,7 +26,7 @@ export function InspectionForm({ token, rooms }: { token: string; rooms: string[
   }
 
   return (
-    <div className="space-y-6 border-t border-black/10 pt-6 dark:border-white/15">
+    <div className="space-y-6 border-t border-line pt-6">
       {adding ? (
         <section className="space-y-3">
           <h2 className="font-semibold">הוספת תמונות</h2>
@@ -45,7 +45,7 @@ export function InspectionForm({ token, rooms }: { token: string; rooms: string[
         <button
           type="button"
           onClick={() => setAdding(true)}
-          className="w-full rounded-lg border border-black/15 px-4 py-3 font-medium hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+          className="w-full rounded-lg border border-line-strong px-4 py-3 font-medium hover:bg-sunken"
         >
           הוספת תמונות משלי
         </button>
@@ -53,12 +53,12 @@ export function InspectionForm({ token, rooms }: { token: string; rooms: string[
 
       <form action={approve} className="space-y-3">
         <label className="block space-y-1 text-sm">
-          <span className="opacity-70">הערות (רשות)</span>
+          <span className="text-muted">הערות (רשות)</span>
           <textarea
             name="note"
             rows={3}
             maxLength={1000}
-            className="w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 dark:border-white/20"
+            className="w-full rounded-lg border border-line-strong bg-transparent px-3 py-2"
           />
         </label>
         {error && <p className="text-sm text-red-700 dark:text-red-400">{error}</p>}

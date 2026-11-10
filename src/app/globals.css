@@ -1,25 +1,88 @@
 @import "tailwindcss";
 
+/*
+ * "Check paper": a cool, faintly green canvas like a cheque book's security
+ * paper, white panels on top, and a single fountain-pen ink blue for anything
+ * you can press. Status colours (green/amber/red) are reserved for statuses.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --canvas: #f2f4f3;
+  --surface: #ffffff;
+  --sunken: #e8ecea;
+  --ink: #17201d;
+  --muted: #56625e;
+  --line: rgb(23 32 29 / 0.1);
+  --line-strong: rgb(23 32 29 / 0.18);
+
+  /* Kept for existing components that read them. */
+  --background: var(--canvas);
+  --foreground: var(--ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #0f1513;
+    --surface: #171f1c;
+    --sunken: #0b100e;
+    --ink: #e6ebe9;
+    --muted: #9aa6a2;
+    --line: rgb(230 235 233 / 0.11);
+    --line-strong: rgb(230 235 233 / 0.2);
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-heebo);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --font-sans: var(--font-plex);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/*
+ * The "blue" scale is re-tinted to the ink hue, so every screen that uses
+ * bg-blue-600 for its primary action picks up the same accent.
+ */
+@theme {
+  --color-blue-50: oklch(0.97 0.015 268);
+  --color-blue-100: oklch(0.93 0.035 268);
+  --color-blue-200: oklch(0.86 0.065 268);
+  --color-blue-300: oklch(0.78 0.1 268);
+  --color-blue-400: oklch(0.72 0.12 268);
+  --color-blue-500: oklch(0.56 0.15 268);
+  --color-blue-600: oklch(0.44 0.15 268);
+  --color-blue-700: oklch(0.38 0.14 268);
+  --color-blue-800: oklch(0.32 0.12 268);
+  --color-blue-900: oklch(0.27 0.09 268);
+  --color-blue-950: oklch(0.21 0.06 268);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-heebo), Arial, Helvetica, sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-plex), Arial, Helvetica, sans-serif;
+  line-height: 1.55;
 }
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-blue-600);
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :focus-visible {
+    outline-color: var(--color-blue-400);
+  }
+}
+

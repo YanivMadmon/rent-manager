@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { FileLink } from "@/components/file-link";
 import { PreparedMessage } from "@/components/prepared-message";
+import { buttonPrimary, buttonSecondary, fieldClass, PAYMENT_TONE, Pill } from "@/components/ui";
 import type { PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
 import {
   formatDate,
@@ -22,21 +23,9 @@ import {
   updateCheck,
   type ActionResult,
 } from "./actions";
+import { CheckIcon, PencilIcon, TrashIcon } from "@/components/icons";
 
-const STATUS_STYLE: Record<PaymentStatus, string> = {
-  EXPECTED: "bg-black/5 dark:bg-white/10",
-  PENDING_DEPOSIT: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
-  DEPOSITED: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200",
-  PAID: "bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200",
-  PARTIAL: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
-  LATE: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200",
-  BOUNCED: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200",
-};
-
-const fieldClass =
-  "w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/20";
-const actionClass =
-  "rounded-lg border border-black/15 px-3 py-1.5 text-sm hover:bg-black/5 disabled:opacity-60 dark:border-white/20 dark:hover:bg-white/10";
+const actionClass = buttonSecondary;
 
 type Row = {
   id: string;
@@ -72,106 +61,129 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
     });
   }
 
+  // Only what is due today or earlier gets the strong button; future months stay quiet.
+  const isDue = payment.dueDate.toISOString().slice(0, 10) <= today;
+  const checkDue = check ? check.dueDate.toISOString().slice(0, 10) <= today : isDue;
+
   return (
-    <li className="space-y-3 rounded-xl border border-black/10 p-4 dark:border-white/15">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-0.5">
-          <p className="font-semibold">{formatMonth(payment.periodMonth)}</p>
-          <p className="text-sm opacity-70">
-            {formatILS(payment.amountDue)} · עד {formatDate(payment.dueDate)}
+    <li id={`payment-${id}`} className="scroll-mt-20 space-y-3 p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 space-y-0.5">
+          <p className="font-medium">{formatMonth(payment.periodMonth)}</p>
+          <p className="text-sm tabular-nums">
+            <span className="font-semibold">{formatILS(payment.amountDue)}</span>
+            <span className="text-muted"> עד {formatDate(payment.dueDate)}</span>
           </p>
+        </div>
+        <Pill tone={PAYMENT_TONE[status]}>{PAYMENT_STATUS_LABEL[status]}</Pill>
+      </div>
+
+      {(status === "LATE" || status === "PARTIAL" || check || (payment.method && payment.method !== "CHECK")) && (
+        <div className="space-y-0.5 text-sm">
           {status === "LATE" && (
-            <p className="text-sm text-red-700 dark:text-red-400">{payment.daysLate === 1 ? "איחור של יום אחד" : `איחור של ${payment.daysLate} ימים`}</p>
+            <p className="font-medium text-red-700 dark:text-red-400">
+              {payment.daysLate === 1 ? "איחור של יום אחד" : `איחור של ${payment.daysLate} ימים`}
+            </p>
           )}
           {status === "PARTIAL" && (
-            <p className="text-sm opacity-70">
-              שולם {formatILS(payment.amountPaid)}, נותרו {formatILS(balance)}
+            <p className="text-amber-800 tabular-nums dark:text-amber-300">
+              שולמו {formatILS(payment.amountPaid)}, נותרו {formatILS(balance)}
             </p>
           )}
           {check && (
-            <p className="text-sm opacity-70">
-              צ׳ק {check.number} · {check.bank} · {formatDate(check.dueDate)}
+            <p className="text-muted tabular-nums">
+              צ׳ק מס׳ {check.number}, {check.bank}, לתאריך {formatDate(check.dueDate)}
             </p>
           )}
           {payment.method && payment.method !== "CHECK" && (
-            <p className="text-sm opacity-70">{PAYMENT_METHOD_LABEL[payment.method]}</p>
+            <p className="text-muted">שולם ב{PAYMENT_METHOD_LABEL[payment.method]}</p>
           )}
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-medium ${STATUS_STYLE[status]}`}>
-          {PAYMENT_STATUS_LABEL[status]}
-        </span>
-      </div>
+      )}
 
       {reportedAt && (
-        <p className="rounded-lg bg-blue-50 px-3 py-2 text-sm dark:bg-blue-950/40">
-          השוכר דיווח ב-{formatDate(reportedAt)} ששילם
+        <p className="rounded-xl bg-blue-50 px-3 py-2 text-sm text-blue-900 dark:bg-blue-950 dark:text-blue-100">
+          השוכר דיווח ב־{formatDate(reportedAt)} ששילם
           {reportedMethod && ` (${PAYMENT_METHOD_LABEL[reportedMethod]})`}
         </p>
       )}
       {proof?.url && <FileLink url={proof.url} isPdf={proof.isPdf} label="צפייה באסמכתה" />}
 
-      <div className="flex flex-wrap gap-2">
-        {canRecord && (
-          <button type="button" className={actionClass} onClick={() => setEditing("payment")}>
-            {reportedAt ? "אישור התשלום" : "רישום תשלום"}
-          </button>
-        )}
-        {reportedAt && (
-          <button
-            type="button"
-            disabled={pending}
-            className={actionClass}
-            onClick={() => confirm("לדחות את הדיווח של השוכר?") && run(() => dismissReport(id))}
-          >
-            דחיית הדיווח
-          </button>
-        )}
-        {canRecord && !reportedAt && <PreparedMessage
-            prepare={() => createPaymentLink(id)}
-            label={payment.noticeLabel}
-            className={actionClass}
-          />}
-        {status === "PENDING_DEPOSIT" && (
-          <button type="button" disabled={pending} className={actionClass} onClick={() => run(() => depositCheck(id))}>
-            הופקד
-          </button>
-        )}
-        {status === "DEPOSITED" && (
-          <button
-            type="button"
-            disabled={pending}
-            className={actionClass}
-            onClick={() => confirm("לסמן שהצ׳ק חזר?") && run(() => bounceCheck(id))}
-          >
-            הצ׳ק חזר
-          </button>
-        )}
-        {check && (status === "PENDING_DEPOSIT" || status === "DEPOSITED") && (
-          <button type="button" className={actionClass} onClick={() => setEditing("check")}>
-            עריכת צ׳ק
-          </button>
-        )}
-        {(status === "PENDING_DEPOSIT" || status === "BOUNCED") && (
-          <button
-            type="button"
-            disabled={pending}
-            className={actionClass}
-            onClick={() => confirm("להסיר את הצ׳ק מהחודש הזה?") && run(() => removeCheck(id))}
-          >
-            הסרת צ׳ק
-          </button>
-        )}
-        {(status === "PAID" || status === "PARTIAL" || status === "DEPOSITED") && (
-          <button
-            type="button"
-            disabled={pending}
-            className={actionClass}
-            onClick={() => confirm("לבטל את רישום התשלום?") && run(() => undoPayment(id))}
-          >
-            ביטול
-          </button>
-        )}
-      </div>
+      {editing === null && (
+        <div className="flex flex-wrap gap-2">
+          {canRecord && (
+            <button
+              type="button"
+              className={reportedAt || isDue ? buttonPrimary : actionClass}
+              onClick={() => setEditing("payment")}
+            >
+              <CheckIcon className="h-4 w-4" />
+              {reportedAt ? "אישור התשלום" : "רישום תשלום"}
+            </button>
+          )}
+          {reportedAt && (
+            <button
+              type="button"
+              disabled={pending}
+              className={actionClass}
+              onClick={() => confirm("לדחות את הדיווח של השוכר?") && run(() => dismissReport(id))}
+            >
+              דחיית הדיווח
+            </button>
+          )}
+          {canRecord && !reportedAt && isDue && (
+            <PreparedMessage prepare={() => createPaymentLink(id)} label={payment.noticeLabel} className={actionClass} />
+          )}
+          {status === "PENDING_DEPOSIT" && (
+            <button
+              type="button"
+              disabled={pending}
+              className={checkDue ? buttonPrimary : actionClass}
+              onClick={() => run(() => depositCheck(id))}
+            >
+              <CheckIcon className="h-4 w-4" />
+              סימון כהופקד
+            </button>
+          )}
+          {status === "DEPOSITED" && (
+            <button
+              type="button"
+              disabled={pending}
+              className={actionClass}
+              onClick={() => confirm("לסמן שהצ׳ק חזר?") && run(() => bounceCheck(id))}
+            >
+              הצ׳ק חזר
+            </button>
+          )}
+          {check && (status === "PENDING_DEPOSIT" || status === "DEPOSITED") && (
+            <button type="button" className={actionClass} onClick={() => setEditing("check")}>
+              <PencilIcon className="h-4 w-4 text-muted" />
+              עריכת הצ׳ק
+            </button>
+          )}
+          {(status === "PENDING_DEPOSIT" || status === "BOUNCED") && (
+            <button
+              type="button"
+              disabled={pending}
+              className={actionClass}
+              onClick={() => confirm("להסיר את הצ׳ק מהחודש הזה?") && run(() => removeCheck(id))}
+            >
+              <TrashIcon className="h-4 w-4 text-muted" />
+              הסרת הצ׳ק
+            </button>
+          )}
+          {(status === "PAID" || status === "PARTIAL" || status === "DEPOSITED") && (
+            <button
+              type="button"
+              disabled={pending}
+              className={actionClass}
+              onClick={() => confirm("לבטל את רישום התשלום?") && run(() => undoPayment(id))}
+            >
+              ביטול הרישום
+            </button>
+          )}
+        </div>
+      )}
 
       {editing === "payment" && (
         <form
@@ -184,36 +196,38 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
               }),
             )
           }
-          className="grid gap-2 sm:grid-cols-4"
+          className="space-y-3 rounded-xl border border-line bg-canvas p-3"
         >
-          <select
-            name="method"
-            aria-label="אמצעי תשלום"
-            defaultValue={reportedMethod ?? "TRANSFER"}
-            className={fieldClass}
-          >
-            <option value="TRANSFER">{PAYMENT_METHOD_LABEL.TRANSFER}</option>
-            <option value="CASH">{PAYMENT_METHOD_LABEL.CASH}</option>
-          </select>
-          <input
-            name="amount"
-            type="number"
-            step="0.01"
-            min="0.01"
-            required
-            aria-label="סכום"
-            defaultValue={balance / 100}
-            className={fieldClass}
-          />
-          <input
-            name="paidAt"
-            type="date"
-            required
-            aria-label="תאריך"
-            defaultValue={reportedAt?.toISOString().slice(0, 10) ?? today}
-            className={fieldClass}
-          />
-          <FormButtons pending={pending} onCancel={() => setEditing(null)} />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Field label="אמצעי תשלום">
+              <select name="method" defaultValue={reportedMethod ?? "TRANSFER"} className={fieldClass}>
+                <option value="TRANSFER">{PAYMENT_METHOD_LABEL.TRANSFER}</option>
+                <option value="CASH">{PAYMENT_METHOD_LABEL.CASH}</option>
+              </select>
+            </Field>
+            <Field label="סכום (₪)">
+              <input
+                name="amount"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                min="0.01"
+                required
+                defaultValue={balance / 100}
+                className={fieldClass}
+              />
+            </Field>
+            <Field label="תאריך התשלום">
+              <input
+                name="paidAt"
+                type="date"
+                required
+                defaultValue={reportedAt?.toISOString().slice(0, 10) ?? today}
+                className={fieldClass}
+              />
+            </Field>
+          </div>
+          <FormButtons pending={pending} label="שמירת התשלום" onCancel={() => setEditing(null)} />
         </form>
       )}
 
@@ -228,43 +242,52 @@ export function PaymentRow({ payment, today }: { payment: Row; today: string }) 
               }),
             )
           }
-          className="grid gap-2 sm:grid-cols-4"
+          className="space-y-3 rounded-xl border border-line bg-canvas p-3"
         >
-          <input name="bank" required aria-label="בנק" defaultValue={check.bank} className={fieldClass} />
-          <input
-            name="number"
-            required
-            inputMode="numeric"
-            aria-label="מספר צ׳ק"
-            defaultValue={check.number}
-            className={fieldClass}
-          />
-          <input
-            name="dueDate"
-            type="date"
-            required
-            aria-label="תאריך הצ׳ק"
-            defaultValue={check.dueDate.toISOString().slice(0, 10)}
-            className={fieldClass}
-          />
-          <FormButtons pending={pending} onCancel={() => setEditing(null)} />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Field label="בנק">
+              <input name="bank" required defaultValue={check.bank} className={fieldClass} />
+            </Field>
+            <Field label="מספר הצ׳ק">
+              <input name="number" required inputMode="numeric" defaultValue={check.number} className={fieldClass} />
+            </Field>
+            <Field label="תאריך הצ׳ק">
+              <input
+                name="dueDate"
+                type="date"
+                required
+                defaultValue={check.dueDate.toISOString().slice(0, 10)}
+                className={fieldClass}
+              />
+            </Field>
+          </div>
+          <FormButtons pending={pending} label="שמירת הצ׳ק" onCancel={() => setEditing(null)} />
         </form>
       )}
 
-      {error && <p className="text-sm text-red-700 dark:text-red-400">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-700 dark:text-red-400">
+          {error}
+        </p>
+      )}
     </li>
   );
 }
 
-function FormButtons({ pending, onCancel }: { pending: boolean; onCancel: () => void }) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block space-y-1 text-sm">
+      <span className="text-muted">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function FormButtons({ pending, label, onCancel }: { pending: boolean; label: string; onCancel: () => void }) {
   return (
     <div className="flex gap-2">
-      <button
-        type="submit"
-        disabled={pending}
-        className="flex-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-      >
-        שמירה
+      <button type="submit" disabled={pending} className={`${buttonPrimary} flex-1`}>
+        {pending ? "שומר..." : label}
       </button>
       <button type="button" onClick={onCancel} className={actionClass}>
         ביטול
