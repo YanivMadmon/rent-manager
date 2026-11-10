@@ -40,9 +40,7 @@ async function UserMenu() {
   const user = await requireUser();
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className="hidden text-muted sm:inline" dir="ltr">
-        {user.email}
-      </span>
+      <Avatar name={user.name} email={user.email} url={user.avatarUrl} />
       <form action={signOut}>
         <button type="submit" className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-muted hover:bg-sunken hover:text-ink">
           <LogOutIcon className="h-4 w-4" />
@@ -50,5 +48,36 @@ async function UserMenu() {
         </button>
       </form>
     </div>
+  );
+}
+
+// The Google profile photo, or the first letter of the name when there is none.
+function Avatar({ name, email, url }: { name: string | null; email: string; url: string | null }) {
+  const label = name ? `${name} (${email})` : email;
+  if (url) {
+    return (
+      // Google serves these photos from its own CDN, which rejects requests
+      // carrying a referrer, so next/image's optimiser adds nothing here.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt={label}
+        title={label}
+        referrerPolicy="no-referrer"
+        width={32}
+        height={32}
+        className="h-8 w-8 shrink-0 rounded-full border border-line object-cover"
+      />
+    );
+  }
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white"
+    >
+      {(name ?? email).trim().charAt(0).toUpperCase() || "?"}
+    </span>
   );
 }
