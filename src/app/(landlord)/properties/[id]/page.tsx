@@ -9,6 +9,7 @@ import { CurrentTenancy } from "./current-tenancy";
 import { PropertyPhotos } from "./photos/property-photos";
 import { TenancyFiles } from "./tenancies/[tenancyId]/files/tenancy-files";
 import { TenancyIssues } from "./tenancies/[tenancyId]/issues/tenancy-issues";
+import { TenancyUtilities } from "./tenancies/[tenancyId]/utilities/tenancy-utilities";
 
 export default function PropertyPage({ params }: PageProps<"/properties/[id]">) {
   return (
@@ -58,6 +59,11 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
           issues={
             <Suspense fallback={<p className="text-muted">טוען תקלות...</p>}>
               <TenancyIssues tenancyId={current.id} />
+            </Suspense>
+          }
+          utilities={
+            <Suspense fallback={<p className="text-muted">טוען חשבונות...</p>}>
+              <TenancyUtilities tenancyId={current.id} />
             </Suspense>
           }
           files={

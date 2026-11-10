@@ -336,6 +336,10 @@ model UtilityTransfer {
   type        UtilityType
   proofPath   String?
   confirmedAt DateTime?
+  /// When the tenant last uploaded a confirmation.
+  uploadedAt  DateTime?
+  /// The bill doesn't apply to this flat, e.g. no gas.
+  skipped     Boolean     @default(false)
 
   @@unique([tenancyId, type])
 }

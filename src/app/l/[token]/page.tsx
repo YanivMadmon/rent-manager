@@ -6,6 +6,7 @@ import { InspectionReport } from "./inspection-report";
 import { IssueReport } from "./issue-report";
 import { LinkMessage } from "./link-message";
 import { PaymentReport } from "./payment-report";
+import { UtilityReport } from "./utility-report";
 
 // Links carry a token: keep them out of search engines and referrer headers.
 export const metadata: Metadata = {
@@ -32,5 +33,6 @@ async function TenantLink({ params }: Pick<PageProps<"/l/[token]">, "params">) {
   if (link?.purpose === "CONFIRM_PAYMENT") return <PaymentReport link={link} token={token} />;
   if (link?.purpose === "REPORT_ISSUE") return <IssueReport link={link} token={token} />;
   if (link?.purpose === "APPROVE_INSPECTION") return <InspectionReport link={link} token={token} />;
+  if (link?.purpose === "UTILITY_PROOF") return <UtilityReport link={link} token={token} />;
   return <LinkMessage title="הקישור לא תקף" body="אפשר לבקש קישור חדש מבעל הדירה." />;
 }

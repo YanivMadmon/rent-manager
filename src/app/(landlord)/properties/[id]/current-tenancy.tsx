@@ -28,11 +28,13 @@ export function CurrentTenancy({
   propertyId,
   tenancy,
   issues,
+  utilities,
   files,
 }: {
   propertyId: string;
   tenancy: Tenancy & { parties: Party[] };
   issues: ReactNode;
+  utilities: ReactNode;
   files: ReactNode;
 }) {
   // Rendered at request time (behind the session read), so "now" is safe here.
@@ -137,6 +139,7 @@ export function CurrentTenancy({
               ),
           },
           { id: "issues", label: "תקלות", content: issues },
+          { id: "utilities", label: "חשבונות", content: utilities },
           { id: "files", label: "קבצים", content: files },
         ]}
       />

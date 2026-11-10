@@ -20,6 +20,7 @@ import {
   ISSUE_STATUS_LABEL,
 } from "@/lib/format";
 import { daysLeft, deadlineLabel, issueDeadline } from "@/lib/issues";
+import { UTILITY_LABEL } from "@/lib/utilities";
 import {
   daysLate,
   monthStart,
@@ -46,7 +47,7 @@ async function Dashboard() {
   const chaseBefore = new Date(today.getTime() - (REMINDER_AFTER_DAYS - 1) * 24 * 60 * 60 * 1000);
   const live = { status: { not: "CLOSED" as const }, property: { ownerId: user.id } };
 
-  const [thisMonth, needingAction, openIssues] = await Promise.all([
+  const [thisMonth, needingAction, openIssues, utilityProofs] = await Promise.all([
     prisma.payment.findMany({
       where: { periodMonth: month, tenancy: live },
       select: { amountDue: true, amountPaid: true },
@@ -77,6 +78,13 @@ async function Dashboard() {
     prisma.issue.findMany({
       where: { tenancy: live, status: { not: "RESOLVED" } },
       orderBy: [{ urgent: "desc" }, { reportedAt: "asc" }],
+      include: {
+        tenancy: { select: { propertyId: true, property: { select: { address: true } } } },
+      },
+    }),
+    prisma.utilityTransfer.findMany({
+      where: { tenancy: live, proofPath: { not: null }, confirmedAt: null, skipped: false },
+      orderBy: { uploadedAt: "asc" },
       include: {
         tenancy: { select: { propertyId: true, property: { select: { address: true } } } },
       },
@@ -179,6 +187,35 @@ async function Dashboard() {
           </Panel>
         )}
       </section>
+
+      {utilityProofs.length > 0 && (
+        <section aria-labelledby="utilities-title" className="space-y-3">
+          <SectionHeading id="utilities-title" count={utilityProofs.length}>
+            אישורי העברת חשבונות
+          </SectionHeading>
+          <Panel>
+            <ul className="divide-y divide-line">
+              {utilityProofs.map((u) => (
+                <li key={u.id}>
+                  <Link
+                    href={`/properties/${u.tenancy.propertyId}`}
+                    className="flex items-start gap-3 p-4 hover:bg-sunken"
+                  >
+                    <span aria-hidden="true" className={`mt-2 h-2.5 w-2.5 shrink-0 rounded-full ${TONE_DOT.info}`} />
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <p className="font-medium">השוכר העלה אישור: {UTILITY_LABEL[u.type]}</p>
+                      <p className="truncate text-sm text-muted">{u.tenancy.property.address}</p>
+                    </div>
+                    <span className="mt-0.5">
+                      <Chevron />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        </section>
+      )}
 
       {openIssues.length > 0 && (
         <section aria-labelledby="issues-title" className="space-y-3">
