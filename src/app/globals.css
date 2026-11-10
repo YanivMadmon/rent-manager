@@ -75,6 +75,26 @@ h3 {
   line-height: 1.2;
 }
 
+/* Tailwind v4 resets buttons to the default arrow; bring back the hand. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"],
+  select:not(:disabled),
+  summary,
+  input[type="file"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  label:has(> input[type="file"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--color-blue-600);
   outline-offset: 2px;
