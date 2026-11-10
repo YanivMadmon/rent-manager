@@ -19,6 +19,7 @@ const EVENT_LABEL: Record<string, string> = {
   "payment.notice_prepared": "הוכנה הודעה לשוכר על תשלום",
   "issue.reported": "השוכר דיווח על תקלה",
   "issue.status_changed": "סטטוס תקלה עודכן",
+  "issue.cost_set": "עודכנה עלות תיקון",
   "inspection.photos_added": "נוספו תמונות לפרוטוקול המסירה",
   "inspection.tenant_photos_added": "השוכר הוסיף תמונות לפרוטוקול המסירה",
   "inspection.approved": "השוכר אישר את פרוטוקול המסירה",

@@ -297,6 +297,8 @@ model Issue {
   photoPaths  String[]
   reportedAt  DateTime    @default(now())
   resolvedAt  DateTime?
+  /// What the landlord paid for the repair, in agorot.
+  repairCost  Int?
 
   @@index([tenancyId, status])
 }

@@ -77,3 +77,40 @@ export async function setIssueStatus(issueId: string, status: string): Promise<{
   revalidatePath("/dashboard");
   return {};
 }
+
+const RepairCostSchema = z
+  .string()
+  .trim()
+  .transform((s) => (s === "" ? null : Number(s)))
+  .refine((n) => n === null || (Number.isFinite(n) && n >= 0), "יש להזין סכום תקין")
+  .refine((n) => n === null || n <= 1_000_000, "סכום גבוה מדי");
+
+// An empty amount clears it.
+export async function setRepairCost(issueId: string, amount: string): Promise<{ error?: string }> {
+  const user = await requireUser();
+  const parsed = RepairCostSchema.safeParse(amount);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const repairCost = parsed.data === null ? null : Math.round(parsed.data * 100);
+
+  const issue = await prisma.issue.findFirst({
+    where: { id: issueId, tenancy: { property: { ownerId: user.id } } },
+    include: { tenancy: { select: { propertyId: true } } },
+  });
+  if (!issue) return { error: "התקלה לא נמצאה" };
+  if (issue.repairCost === repairCost) return {};
+
+  await prisma.$transaction([
+    prisma.issue.update({ where: { id: issue.id }, data: { repairCost } }),
+    prisma.timelineEvent.create({
+      data: {
+        tenancyId: issue.tenancyId,
+        type: "issue.cost_set",
+        actor: "landlord",
+        data: { issueId: issue.id, from: issue.repairCost, to: repairCost },
+      },
+    }),
+  ]);
+
+  revalidatePath(`/properties/${issue.tenancy.propertyId}`);
+  return {};
+}

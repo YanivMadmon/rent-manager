@@ -1,11 +1,12 @@
 import { PreparedMessage } from "@/components/prepared-message";
 import { buttonPrimary } from "@/components/ui";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatILS } from "@/lib/format";
 import { daysLeft, deadlineLabel, issueDeadline } from "@/lib/issues";
 import { prisma } from "@/lib/prisma";
 import { createAdminClient, ISSUE_BUCKET } from "@/lib/supabase/admin";
 import { PhotoGallery } from "../../../photos/photo-gallery";
 import { createIssueLink } from "./actions";
+import { IssueCost } from "./issue-cost";
 import { IssueStatus } from "./issue-status";
 
 // Caller must have verified that the tenancy belongs to the current landlord.
@@ -14,6 +15,17 @@ export async function TenancyIssues({ tenancyId }: { tenancyId: string }) {
     where: { id: tenancyId },
     include: { issues: { orderBy: [{ urgent: "desc" }, { reportedAt: "asc" }] } },
   });
+
+  // Repairs add up per property, across every tenancy it has had.
+  const [thisTenancy, wholeProperty] = await Promise.all([
+    prisma.issue.aggregate({ where: { tenancyId }, _sum: { repairCost: true } }),
+    prisma.issue.aggregate({
+      where: { tenancy: { propertyId: tenancy.propertyId } },
+      _sum: { repairCost: true },
+    }),
+  ]);
+  const tenancyCost = thisTenancy._sum.repairCost ?? 0;
+  const propertyCost = wholeProperty._sum.repairCost ?? 0;
 
   // Open issues first; urgent ones lead each group through the query order.
   const issues = [...tenancy.issues].sort(
@@ -32,7 +44,23 @@ export async function TenancyIssues({ tenancyId }: { tenancyId: string }) {
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-end gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {propertyCost > 0 ? (
+          <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+            <div className="flex gap-1.5">
+              <dt className="text-muted">עלות תיקונים בשכירות:</dt>
+              <dd className="font-semibold tabular-nums">{formatILS(tenancyCost)}</dd>
+            </div>
+            {propertyCost !== tenancyCost && (
+              <div className="flex gap-1.5">
+                <dt className="text-muted">בנכס מאז ומעולם:</dt>
+                <dd className="font-semibold tabular-nums">{formatILS(propertyCost)}</dd>
+              </div>
+            )}
+          </dl>
+        ) : (
+          <span />
+        )}
         {tenancy.status !== "CLOSED" && (
           <PreparedMessage
             prepare={createIssueLink.bind(null, tenancy.id)}
@@ -85,6 +113,9 @@ export async function TenancyIssues({ tenancyId }: { tenancyId: string }) {
                     photos={issue.photoPaths.map((path) => ({ id: path, url: urls.get(path) ?? null }))}
                   />
                 )}
+                <div className="border-t border-line pt-2">
+                  <IssueCost issueId={issue.id} cost={issue.repairCost} />
+                </div>
               </li>
             );
           })}
