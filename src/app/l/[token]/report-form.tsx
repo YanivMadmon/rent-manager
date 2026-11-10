@@ -44,12 +44,12 @@ export function ReportForm({ token }: { token: string }) {
   return (
     <form action={submit} className="space-y-4">
       <fieldset className="space-y-2">
-        <legend className="text-sm opacity-70">איך שילמתם?</legend>
+        <legend className="text-sm text-muted">איך שילמתם?</legend>
         <div className="grid grid-cols-2 gap-2">
           {(["TRANSFER", "CASH"] as const).map((method) => (
             <label
               key={method}
-              className="flex items-center gap-2 rounded-lg border border-black/15 px-3 py-3 has-checked:border-blue-600 dark:border-white/20"
+              className="flex items-center gap-2 rounded-lg border border-line-strong px-3 py-3 has-checked:border-blue-600"
             >
               <input type="radio" name="method" value={method} defaultChecked={method === "TRANSFER"} />
               {PAYMENT_METHOD_LABEL[method]}
@@ -59,7 +59,7 @@ export function ReportForm({ token }: { token: string }) {
       </fieldset>
 
       <label className="block space-y-1 text-sm">
-        <span className="opacity-70">אסמכתה (רשות)</span>
+        <span className="text-muted">אסמכתה (רשות)</span>
         <input
           name="proof"
           type="file"
@@ -67,7 +67,7 @@ export function ReportForm({ token }: { token: string }) {
           onChange={(e) => setFileName(e.target.files?.[0]?.name)}
           className="peer sr-only"
         />
-        <span className="block truncate rounded-lg border border-black/15 px-3 py-3 peer-focus-visible:outline-2 peer-focus-visible:outline-blue-600 dark:border-white/20">
+        <span className="block truncate rounded-lg border border-line-strong px-3 py-3 peer-focus-visible:outline-2 peer-focus-visible:outline-blue-600">
           {fileName ?? "בחירת תמונה או PDF"}
         </span>
       </label>

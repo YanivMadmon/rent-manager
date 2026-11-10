@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 const BUCKET = "inspection-photos";
 const MAX_PHOTOS_PER_UPLOAD = 20;
 const fieldClass =
-  "w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 text-sm dark:border-white/20";
+  "w-full rounded-lg border border-line-strong bg-transparent px-3 py-2 text-sm";
 
 type Ticket = { path: string; token: string } | { error: string };
 
@@ -75,7 +75,7 @@ export function RoomPhotosForm({
   return (
     <form ref={formRef} action={submit} className="space-y-3">
       <label className="block space-y-1 text-sm">
-        <span className="opacity-70">חדר</span>
+        <span className="text-muted">חדר</span>
         <input name="room" required maxLength={40} list="room-suggestions" className={fieldClass} />
         <datalist id="room-suggestions">
           {suggestions.map((room) => (
@@ -85,7 +85,7 @@ export function RoomPhotosForm({
       </label>
 
       <label className="block space-y-1 text-sm">
-        <span className="opacity-70">תמונות</span>
+        <span className="text-muted">תמונות</span>
         <input
           name="photos"
           type="file"
@@ -94,13 +94,13 @@ export function RoomPhotosForm({
           onChange={(e) => setFileCount(e.target.files?.length ?? 0)}
           className="peer sr-only"
         />
-        <span className="block rounded-lg border border-black/15 px-3 py-3 peer-focus-visible:outline-2 peer-focus-visible:outline-blue-600 dark:border-white/20">
+        <span className="block rounded-lg border border-line-strong px-3 py-3 peer-focus-visible:outline-2 peer-focus-visible:outline-blue-600">
           {fileCount > 0 ? `נבחרו ${fileCount} תמונות` : "צילום או בחירת תמונות"}
         </span>
       </label>
 
       <label className="block space-y-1 text-sm">
-        <span className="opacity-70">הערה (רשות), למשל &quot;שריטה בדלת&quot;</span>
+        <span className="text-muted">הערה (רשות), למשל &quot;שריטה בדלת&quot;</span>
         <textarea name="note" rows={2} maxLength={500} className={fieldClass} />
       </label>
 

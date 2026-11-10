@@ -1,15 +1,18 @@
 "use client";
 
 import { useRef } from "react";
+import { CloseIcon, ReceiptIcon } from "@/components/icons";
 
 // Images open over the page; a PDF needs the browser's own viewer.
 export function FileLink({ url, isPdf, label }: { url: string; isPdf: boolean; label: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const className = "text-sm text-blue-700 hover:underline dark:text-blue-400";
+  const className =
+    "inline-flex min-h-11 items-center gap-2 text-sm font-medium text-blue-700 hover:underline dark:text-blue-400";
 
   if (isPdf) {
     return (
       <a href={url} target="_blank" rel="noopener noreferrer" className={className}>
+        <ReceiptIcon className="h-4 w-4" />
         {label}
       </a>
     );
@@ -18,6 +21,7 @@ export function FileLink({ url, isPdf, label }: { url: string; isPdf: boolean; l
   return (
     <>
       <button type="button" className={className} onClick={() => dialogRef.current?.showModal()}>
+        <ReceiptIcon className="h-4 w-4" />
         {label}
       </button>
       <dialog
@@ -34,7 +38,7 @@ export function FileLink({ url, isPdf, label }: { url: string; isPdf: boolean; l
             aria-label="סגירה"
             className="absolute top-4 left-4 flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-xl hover:bg-black/80"
           >
-            ✕
+            <CloseIcon />
           </button>
         </div>
       </dialog>

@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { RoomPhotosForm } from "@/components/room-photos-form";
 import { addInspectionPhotos, requestInspectionUpload } from "./actions";
+import { CloseIcon } from "@/components/icons";
 
 export function AddInspectionPhotos({ tenancyId, rooms }: { tenancyId: string; rooms: string[] }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -13,7 +14,7 @@ export function AddInspectionPhotos({ tenancyId, rooms }: { tenancyId: string; r
       <button
         type="button"
         onClick={() => dialogRef.current?.showModal()}
-        className="rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10"
+        className="rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-sm hover:bg-sunken"
       >
         צילום חדר
       </button>
@@ -22,7 +23,7 @@ export function AddInspectionPhotos({ tenancyId, rooms }: { tenancyId: string; r
         ref={dialogRef}
         aria-labelledby="inspection-photos-title"
         onClick={(e) => e.target === dialogRef.current && close()}
-        className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl bg-background p-0 text-foreground backdrop:bg-black/50"
+        className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl bg-surface p-0 text-ink backdrop:bg-black/50"
       >
         <div className="space-y-4 p-6">
           <div className="flex items-center justify-between">
@@ -33,9 +34,9 @@ export function AddInspectionPhotos({ tenancyId, rooms }: { tenancyId: string; r
               type="button"
               onClick={close}
               aria-label="סגירה"
-              className="rounded-md px-2 py-1 text-lg hover:bg-black/5 dark:hover:bg-white/10"
+              className="-me-2 flex h-11 w-11 items-center justify-center rounded-lg text-muted hover:bg-sunken hover:text-ink"
             >
-              ✕
+              <CloseIcon />
             </button>
           </div>
           <RoomPhotosForm

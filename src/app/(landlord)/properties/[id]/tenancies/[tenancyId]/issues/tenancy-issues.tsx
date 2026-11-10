@@ -1,4 +1,5 @@
 import { PreparedMessage } from "@/components/prepared-message";
+import { buttonPrimary } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 import { daysLeft, deadlineLabel, issueDeadline } from "@/lib/issues";
 import { prisma } from "@/lib/prisma";
@@ -36,13 +37,13 @@ export async function TenancyIssues({ tenancyId }: { tenancyId: string }) {
           <PreparedMessage
             prepare={createIssueLink.bind(null, tenancy.id)}
             label="קישור לדיווח לשוכר"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+            className={buttonPrimary}
           />
         )}
       </div>
 
       {issues.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-black/20 p-4 text-center text-sm opacity-80 dark:border-white/20">
+        <p className="rounded-xl border border-dashed border-line-strong p-4 text-center text-sm text-muted">
           לא דווחו תקלות. אפשר לשלוח לשוכר קישור קבוע לדיווח.
         </p>
       ) : (
@@ -52,7 +53,7 @@ export async function TenancyIssues({ tenancyId }: { tenancyId: string }) {
             return (
               <li
                 key={issue.id}
-                className="space-y-3 rounded-xl border border-black/10 bg-white p-4 dark:border-white/15 dark:bg-transparent"
+                className="space-y-3 rounded-xl border border-line bg-surface p-4"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 space-y-1">
@@ -64,11 +65,11 @@ export async function TenancyIssues({ tenancyId }: { tenancyId: string }) {
                         </span>
                       )}
                     </p>
-                    <p className="text-sm opacity-70">דווח ב-{formatDate(issue.reportedAt)}</p>
+                    <p className="text-sm text-muted">דווח ב-{formatDate(issue.reportedAt)}</p>
                     {issue.resolvedAt ? (
-                      <p className="text-sm opacity-70">תוקן ב-{formatDate(issue.resolvedAt)}</p>
+                      <p className="text-sm text-muted">תוקן ב-{formatDate(issue.resolvedAt)}</p>
                     ) : (
-                      <p className={`text-sm ${left < 0 ? "text-red-700 dark:text-red-400" : "opacity-70"}`}>
+                      <p className={`text-sm ${left < 0 ? "text-red-700 dark:text-red-400" : "text-muted"}`}>
                         {deadlineLabel(left)}
                       </p>
                     )}

@@ -8,7 +8,7 @@ import { reportIssue, requestIssuePhotoUpload } from "./issue-actions";
 const BUCKET = "issue-photos";
 const MAX_PHOTOS = 5;
 const fieldClass =
-  "w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 dark:border-white/20";
+  "w-full rounded-lg border border-line-strong bg-transparent px-3 py-2";
 
 export function IssueForm({ token }: { token: string }) {
   const router = useRouter();
@@ -60,17 +60,17 @@ export function IssueForm({ token }: { token: string }) {
   return (
     <form ref={formRef} action={submit} className="space-y-4">
       <label className="block space-y-1 text-sm">
-        <span className="opacity-70">מה התקלה?</span>
+        <span className="text-muted">מה התקלה?</span>
         <input name="title" required minLength={2} maxLength={120} className={fieldClass} />
       </label>
 
       <label className="block space-y-1 text-sm">
-        <span className="opacity-70">פרטים (רשות)</span>
+        <span className="text-muted">פרטים (רשות)</span>
         <textarea name="description" rows={3} maxLength={2000} className={fieldClass} />
       </label>
 
       <label className="block space-y-1 text-sm">
-        <span className="opacity-70">תמונות (רשות, עד {MAX_PHOTOS})</span>
+        <span className="text-muted">תמונות (רשות, עד {MAX_PHOTOS})</span>
         <input
           name="photos"
           type="file"
@@ -79,7 +79,7 @@ export function IssueForm({ token }: { token: string }) {
           onChange={(e) => setFileCount(e.target.files?.length ?? 0)}
           className="peer sr-only"
         />
-        <span className="block rounded-lg border border-black/15 px-3 py-3 peer-focus-visible:outline-2 peer-focus-visible:outline-blue-600 dark:border-white/20">
+        <span className="block rounded-lg border border-line-strong px-3 py-3 peer-focus-visible:outline-2 peer-focus-visible:outline-blue-600">
           {fileCount > 0 ? `נבחרו ${fileCount} תמונות` : "בחירת תמונות"}
         </span>
       </label>

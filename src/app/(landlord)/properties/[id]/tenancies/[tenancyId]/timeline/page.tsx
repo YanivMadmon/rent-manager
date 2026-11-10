@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Link from "next/link";
+import { BackLink } from "@/components/ui";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
@@ -32,7 +32,7 @@ const EVENT_LABEL: Record<string, string> = {
 
 export default function TimelinePage({ params }: Props) {
   return (
-    <Suspense fallback={<p className="opacity-60">טוען...</p>}>
+    <Suspense fallback={<p className="text-muted">טוען...</p>}>
       <Timeline params={params} />
     </Suspense>
   );
@@ -53,19 +53,17 @@ async function Timeline({ params }: Pick<Props, "params">) {
 
   return (
     <div className="space-y-6">
-      <Link href={`/properties/${id}`} className="text-sm opacity-70 hover:underline">
-        → {tenancy.property.address}
-      </Link>
-      <h1 className="text-2xl font-bold">ציר זמן</h1>
+      <BackLink href={`/properties/${id}`}>{tenancy.property.address}</BackLink>
+      <h1 className="text-2xl font-semibold">ציר זמן</h1>
 
       <ol className="space-y-2">
         {tenancy.timeline.map((event) => (
           <li
             key={event.id}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-black/10 p-4 dark:border-white/15"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line p-4"
           >
             <p className="font-medium">{EVENT_LABEL[event.type] ?? event.type}</p>
-            <p className="text-sm opacity-70">
+            <p className="text-sm text-muted">
               {event.actor.startsWith("tenant") ? "השוכר" : "המשכיר"} · {formatDateTime(event.createdAt)}
             </p>
           </li>

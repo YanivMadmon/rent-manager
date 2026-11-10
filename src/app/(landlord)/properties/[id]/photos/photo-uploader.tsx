@@ -4,6 +4,8 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { confirmPhotoUpload, requestPhotoUpload } from "./actions";
+import { CameraIcon } from "@/components/icons";
+import { buttonSecondary } from "@/components/ui";
 
 const BUCKET = "property-photos";
 
@@ -62,9 +64,10 @@ export function PhotoUploader({ propertyId }: { propertyId: string }) {
         type="button"
         disabled={busy}
         onClick={() => inputRef.current?.click()}
-        className="rounded-lg border border-black/15 px-4 py-2 text-sm font-medium hover:bg-black/5 disabled:opacity-60 dark:border-white/20 dark:hover:bg-white/10"
+        className={buttonSecondary}
       >
-        {busy ? `מעלה ${progress.done + 1} מתוך ${progress.total}...` : "+ הוספת תמונות"}
+        <CameraIcon className="h-4 w-4 text-muted" />
+        {busy ? `מעלה ${progress.done + 1} מתוך ${progress.total}...` : "הוספת תמונות"}
       </button>
       {errors.length > 0 && (
         <ul role="alert" className="space-y-1 text-sm text-red-600">

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import type { Party, Tenancy } from "@/generated/prisma/client";
+import { buttonPrimary, buttonSecondary, Panel, Pill, type Tone } from "@/components/ui";
 import {
   formatDate,
   formatILS,
@@ -8,11 +9,21 @@ import {
   PARTY_ROLE_LABEL,
   TENANCY_STATUS_LABEL,
 } from "@/lib/format";
+import { HistoryIcon, KeyIcon, PencilIcon, PhoneIcon, WalletIcon, WhatsAppIcon } from "@/components/icons";
 import { TenancyTabs } from "./tenancy-tabs";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Read-only overview of the live tenancy on the property page.
+const STATUS_TONE: Record<Tenancy["status"], Tone> = {
+  DRAFT: "neutral",
+  AWAITING_SIGNATURES: "info",
+  ACTIVE: "good",
+  ENDING: "warn",
+  CLOSED: "neutral",
+};
+
+// Overview of the live tenancy on the property page: the money and the dates
+// first, then the three things a landlord opens from here.
 export function CurrentTenancy({
   propertyId,
   tenancy,
@@ -26,90 +37,104 @@ export function CurrentTenancy({
 }) {
   // Rendered at request time (behind the session read), so "now" is safe here.
   const today = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
-  const daysLeft = Math.round((tenancy.endDate.getTime() - today) / DAY_MS);
-  const notStarted = tenancy.startDate.getTime() > today;
+  const start = tenancy.startDate.getTime();
+  const end = tenancy.endDate.getTime();
+  const daysLeft = Math.round((end - today) / DAY_MS);
+  const notStarted = start > today;
+  const elapsed = Math.min(1, Math.max(0, (today - start) / Math.max(DAY_MS, end - start)));
 
   const tenants = tenancy.parties.filter((p) => p.role === "TENANT");
   const guarantors = tenancy.parties.filter((p) => p.role === "GUARANTOR");
+  const base = `/properties/${propertyId}/tenancies/${tenancy.id}`;
+
+  const remaining = notStarted
+    ? `מתחילה בעוד ${Math.round((start - today) / DAY_MS)} ימים`
+    : daysLeft > 0
+      ? `נותרו ${daysLeft} ימים`
+      : daysLeft === 0
+        ? "מסתיימת היום"
+        : "תקופת החוזה הסתיימה";
+  const endingSoon = !notStarted && daysLeft <= 90;
 
   return (
-    <section className="space-y-5 rounded-2xl border-2 border-blue-600/30 bg-blue-50/40 p-5 dark:bg-blue-950/20">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">השכירות הנוכחית</h2>
-            <span className="rounded-full bg-blue-600 px-3 py-0.5 text-xs font-medium text-white">
-              {TENANCY_STATUS_LABEL[tenancy.status]}
-            </span>
-            <Link
-              href={`/properties/${propertyId}/tenancies/${tenancy.id}/edit`}
-              aria-label="עריכת השכירות"
-              title="עריכת השכירות"
-              className="rounded-md p-1.5 opacity-60 hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/10"
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-              </svg>
-            </Link>
-          </div>
-          <p className="text-sm opacity-70">
-            {tenancy.imported ? "שכירות קיימת שנוספה למעקב" : "שכירות חדשה"}
-          </p>
+    <section aria-labelledby="tenancy-title" className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <h2 id="tenancy-title" className="text-lg font-semibold">
+            השכירות הנוכחית
+          </h2>
+          <Pill tone={STATUS_TONE[tenancy.status]}>{TENANCY_STATUS_LABEL[tenancy.status]}</Pill>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={`/properties/${propertyId}/tenancies/${tenancy.id}/payments`}
-            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-          >
+        <Link
+          href={`${base}/edit`}
+          aria-label="עריכת השכירות"
+          title="עריכת השכירות"
+          className="-me-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-sunken hover:text-ink"
+        >
+          <PencilIcon />
+        </Link>
+      </div>
+
+      <Panel>
+        <div className="space-y-5 p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <p className="text-2xl font-semibold tabular-nums">
+              {formatILS(tenancy.monthlyRent)}
+              <span className="ms-1 text-base font-normal text-muted">לחודש</span>
+            </p>
+            <p className="text-sm text-muted">תשלום ב־{tenancy.paymentDay} בכל חודש</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
+              <p className="tabular-nums">
+                {formatDate(tenancy.startDate)} – {formatDate(tenancy.endDate)}
+              </p>
+              <p className={endingSoon ? "font-medium text-amber-700 dark:text-amber-400" : "text-muted"}>
+                {remaining}
+              </p>
+            </div>
+            <div aria-hidden="true" className="h-1.5 overflow-hidden rounded-full bg-sunken">
+              <div
+                className={`h-full rounded-full ${endingSoon ? "bg-amber-500" : "bg-ink/30"}`}
+                style={{ width: `${elapsed * 100}%` }}
+              />
+            </div>
+            {tenancy.imported && <p className="text-xs text-muted">שכירות קיימת שנוספה למעקב באמצע התקופה</p>}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 border-t border-line bg-canvas/50 p-3">
+          <Link href={`${base}/payments`} className={`${buttonPrimary} col-span-2`}>
+            <WalletIcon />
             תשלומים וצ׳קים
           </Link>
-          <Link
-            href={`/properties/${propertyId}/tenancies/${tenancy.id}/timeline`}
-            className="rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10"
-          >
+          <Link href={`${base}/timeline`} className={buttonSecondary}>
+            <HistoryIcon className="h-4 w-4 text-muted" />
             ציר זמן
           </Link>
-          <Link
-            href={`/properties/${propertyId}/tenancies/${tenancy.id}/handover`}
-            className="rounded-lg border border-black/15 bg-white px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:bg-transparent dark:hover:bg-white/10"
-          >
+          <Link href={`${base}/handover`} className={buttonSecondary}>
+            <KeyIcon className="h-4 w-4 text-muted" />
             {tenancy.status === "ENDING" ? "המשך המסירה" : "תהליך מסירה"}
           </Link>
         </div>
-      </div>
+      </Panel>
 
       <TenancyTabs
         tabs={[
           {
-            id: "details",
-            label: "פרטים",
-            content: (
-              <div className="space-y-5">
-                <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <Stat label="שכר דירה" value={formatILS(tenancy.monthlyRent)} hint="לחודש" />
-                  <Stat label="יום תשלום" value={`${tenancy.paymentDay} בחודש`} />
-                  <Stat label="תקופה" value={`${formatDate(tenancy.startDate)} – ${formatDate(tenancy.endDate)}`} />
-                  <Stat
-                    label={notStarted ? "מתחילה בעוד" : "נותרו"}
-                    value={
-                      notStarted
-                        ? `${Math.round((tenancy.startDate.getTime() - today) / DAY_MS)} ימים`
-                        : daysLeft >= 0
-                          ? `${daysLeft} ימים`
-                          : "הסתיימה"
-                    }
-                    warn={!notStarted && daysLeft <= 90}
-                  />
-                </dl>
-
+            id: "people",
+            label: "שוכרים וערבים",
+            content:
+              tenants.length + guarantors.length === 0 ? (
+                <p className="text-sm text-muted">לא נוספו שוכרים לשכירות.</p>
+              ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {[...tenants, ...guarantors].map((p) => (
                     <PartyCard key={p.id} party={p} />
                   ))}
                 </div>
-              </div>
-            ),
+              ),
           },
           { id: "issues", label: "תקלות", content: issues },
           { id: "files", label: "קבצים", content: files },
@@ -119,53 +144,45 @@ export function CurrentTenancy({
   );
 }
 
-function Stat({
-  label,
-  value,
-  hint,
-  warn,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  warn?: boolean;
-}) {
-  return (
-    <div className="space-y-0.5">
-      <dt className="text-xs opacity-60">{label}</dt>
-      <dd className={`font-semibold ${warn ? "text-amber-700 dark:text-amber-400" : ""}`}>{value}</dd>
-      {hint && <dd className="text-xs opacity-60">{hint}</dd>}
-    </div>
-  );
-}
-
 function PartyCard({ party }: { party: Party }) {
   const waNumber = party.phone.replace(/^\+/, "");
   return (
-    <div className="space-y-2 rounded-xl border border-black/10 bg-white p-4 dark:border-white/15 dark:bg-transparent">
-      <div className="flex items-center justify-between gap-2">
-        <p className="font-semibold">{party.fullName}</p>
-        <span className="text-xs opacity-60">{PARTY_ROLE_LABEL[party.role]}</span>
+    <div className="space-y-3 rounded-2xl border border-line bg-surface p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="font-medium">{party.fullName}</p>
+        <span className="text-sm text-muted">{PARTY_ROLE_LABEL[party.role]}</span>
       </div>
-      <div className="flex flex-wrap items-center gap-3 text-sm">
-        <a href={`tel:${party.phone}`} dir="ltr" className="hover:underline">
-          {formatPhone(party.phone)}
+      <div className="flex gap-2">
+        <a
+          href={`tel:${party.phone}`}
+          className={`${buttonSecondary} flex-1`}
+          aria-label={`התקשרות אל ${party.fullName}, ${formatPhone(party.phone)}`}
+        >
+          <PhoneIcon className="h-4 w-4 text-muted" />
+          <span dir="ltr" className="tabular-nums">
+            {formatPhone(party.phone)}
+          </span>
         </a>
         <a
           href={`https://wa.me/${waNumber}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-green-700 hover:underline dark:text-green-400"
+          aria-label={`וואטסאפ אל ${party.fullName}`}
+          title="וואטסאפ"
+          className={`${buttonSecondary} w-11 shrink-0 px-0`}
         >
-          וואטסאפ
+          <WhatsAppIcon className="h-6 w-6 text-[#1c9a4e] dark:text-[#25d366]" />
         </a>
       </div>
       {(party.idNumber || party.email) && (
-        <p className="text-sm opacity-70">
-          {party.idNumber && <span>ת״ז {party.idNumber}</span>}
-          {party.idNumber && party.email && " · "}
-          {party.email && <span dir="ltr">{party.email}</span>}
-        </p>
+        <div className="space-y-0.5 text-sm text-muted">
+          {party.idNumber && <p>ת״ז {party.idNumber}</p>}
+          {party.email && (
+            <p dir="ltr" className="truncate text-end">
+              {party.email}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

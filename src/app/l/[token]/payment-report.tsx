@@ -24,13 +24,13 @@ export async function PaymentReport({ link, token }: { link: MagicLink; token: s
   return (
     <>
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">עדכון תשלום</h1>
-        <p className="opacity-70">
+        <h1 className="text-2xl font-semibold">עדכון תשלום</h1>
+        <p className="text-muted">
           {address}, {city}
         </p>
       </div>
 
-      <dl className="space-y-2 rounded-xl border border-black/10 p-4 dark:border-white/15">
+      <dl className="space-y-2 rounded-xl border border-line p-4">
         <Row label="חודש" value={formatMonth(payment.periodMonth)} />
         <Row label="סכום" value={formatILS(payment.amountDue - payment.amountPaid)} />
         <Row label="מועד תשלום" value={formatDate(payment.dueDate)} />
@@ -44,7 +44,7 @@ export async function PaymentReport({ link, token }: { link: MagicLink; token: s
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <dt className="text-sm opacity-70">{label}</dt>
+      <dt className="text-sm text-muted">{label}</dt>
       <dd className="font-semibold">{value}</dd>
     </div>
   );

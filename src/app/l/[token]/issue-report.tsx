@@ -23,8 +23,8 @@ export async function IssueReport({ link, token }: { link: MagicLink; token: str
   return (
     <>
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">דיווח על תקלה</h1>
-        <p className="opacity-70">
+        <h1 className="text-2xl font-semibold">דיווח על תקלה</h1>
+        <p className="text-muted">
           {tenancy.property.address}, {tenancy.property.city}
         </p>
       </div>
@@ -38,14 +38,14 @@ export async function IssueReport({ link, token }: { link: MagicLink; token: str
             {tenancy.issues.map((issue) => (
               <li
                 key={issue.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-black/10 p-3 dark:border-white/15"
+                className="flex items-center justify-between gap-3 rounded-xl border border-line p-3"
               >
                 <div className="min-w-0">
                   <p className="break-words font-medium">
                     {issue.title}
                     {issue.urgent && " (דחוף)"}
                   </p>
-                  <p className="text-sm opacity-70">{formatDate(issue.reportedAt)}</p>
+                  <p className="text-sm text-muted">{formatDate(issue.reportedAt)}</p>
                 </div>
                 <span className="shrink-0 rounded-full bg-black/5 px-3 py-1 text-xs font-medium dark:bg-white/10">
                   {ISSUE_STATUS_LABEL[issue.status]}

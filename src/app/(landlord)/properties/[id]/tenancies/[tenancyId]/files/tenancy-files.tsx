@@ -33,7 +33,7 @@ export async function TenancyFiles({ tenancyId }: { tenancyId: string }) {
       </div>
 
       {documents.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-black/20 p-4 text-center text-sm opacity-80 dark:border-white/20">
+        <p className="rounded-xl border border-dashed border-line-strong p-4 text-center text-sm text-muted">
           עוד אין קבצים לשכירות. אפשר להעלות את החוזה, ביטחונות וכל מסמך אחר.
         </p>
       ) : (
@@ -42,12 +42,12 @@ export async function TenancyFiles({ tenancyId }: { tenancyId: string }) {
           if (inCategory.length === 0) return null;
           return (
             <section key={category} className="space-y-2">
-              <h3 className="text-sm font-semibold opacity-70">{DOCUMENT_CATEGORY_LABEL[category]}</h3>
+              <h3 className="text-sm font-semibold text-muted">{DOCUMENT_CATEGORY_LABEL[category]}</h3>
               <ul className="space-y-2">
                 {inCategory.map((d) => (
                   <li
                     key={d.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-black/10 bg-white p-3 dark:border-white/15 dark:bg-transparent"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface p-3"
                   >
                     <div className="min-w-0">
                       {urls.get(d.id) ? (
@@ -62,7 +62,7 @@ export async function TenancyFiles({ tenancyId }: { tenancyId: string }) {
                       ) : (
                         <p className="truncate font-medium">{d.name}</p>
                       )}
-                      <p className="text-xs opacity-60">{formatDate(d.createdAt)}</p>
+                      <p className="text-xs text-muted">{formatDate(d.createdAt)}</p>
                     </div>
                     <DeleteFileButton documentId={d.id} />
                   </li>

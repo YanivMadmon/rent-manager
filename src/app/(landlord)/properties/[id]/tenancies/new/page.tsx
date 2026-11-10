@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Link from "next/link";
+import { BackLink } from "@/components/ui";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -7,7 +7,7 @@ import { TenancyForm } from "../tenancy-form";
 
 export default function NewTenancyPage({ params }: PageProps<"/properties/[id]/tenancies/new">) {
   return (
-    <Suspense fallback={<p className="opacity-60">טוען...</p>}>
+    <Suspense fallback={<p className="text-muted">טוען...</p>}>
       <NewTenancy params={params} />
     </Suspense>
   );
@@ -24,12 +24,10 @@ async function NewTenancy({ params }: Pick<PageProps<"/properties/[id]/tenancies
 
   return (
     <div className="space-y-6">
-      <Link href={`/properties/${property.id}`} className="text-sm opacity-70 hover:underline">
-        → {property.address}
-      </Link>
+      <BackLink href={`/properties/${property.id}`}>{property.address}</BackLink>
       <div>
-        <h1 className="text-2xl font-bold">שכירות חדשה</h1>
-        <p className="opacity-70">
+        <h1 className="text-2xl font-semibold">שכירות חדשה</h1>
+        <p className="text-muted">
           {property.address}, {property.city}
         </p>
       </div>

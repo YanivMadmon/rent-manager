@@ -23,7 +23,7 @@ export function IssueStatus({ issueId, status }: { issueId: string; status: Stat
             if (result.error) setError(result.error);
           });
         }}
-        className="rounded-lg border border-black/15 bg-transparent px-3 py-1.5 text-sm disabled:opacity-60 dark:border-white/20"
+        className="rounded-lg border border-line-strong bg-transparent px-3 py-1.5 text-sm disabled:opacity-60"
       >
         {(Object.keys(ISSUE_STATUS_LABEL) as Status[]).map((s) => (
           <option key={s} value={s}>

@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { createProperty, type PropertyFormState } from "./actions";
 
 const inputClass =
-  "w-full rounded-lg border border-black/15 bg-transparent px-3 py-2 dark:border-white/20";
+  "w-full rounded-lg border border-line-strong bg-transparent px-3 py-2";
 
 export function PropertyForm({ onDone }: { onDone?: () => void }) {
   const [state, formAction, pending] = useActionState<PropertyFormState, FormData>(

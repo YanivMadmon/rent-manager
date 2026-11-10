@@ -31,8 +31,8 @@ export async function InspectionReport({ link, token }: { link: MagicLink; token
   return (
     <>
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">פרוטוקול מסירה</h1>
-        <p className="opacity-70">
+        <h1 className="text-2xl font-semibold">פרוטוקול מסירה</h1>
+        <p className="text-muted">
           {address}, {city}
         </p>
       </div>
@@ -42,7 +42,7 @@ export async function InspectionReport({ link, token }: { link: MagicLink; token
           אישרת את הפרוטוקול ב-{formatDateTime(approved)}. תודה!
         </p>
       ) : (
-        <p className="text-sm opacity-80">
+        <p className="text-sm text-muted">
           אלה התמונות של מצב הדירה ביום המסירה, לפי חדרים. אם משהו לא מדויק, אפשר להוסיף תמונות משלך לפני
           האישור.
         </p>
