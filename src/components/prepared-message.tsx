@@ -37,7 +37,7 @@ export function PreparedMessage({
           href={prepared.whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-green-700 px-4 font-medium text-white hover:bg-green-800"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-green-700 px-4 font-medium text-white hover:bg-green-800"
         >
           <WhatsAppIcon />
           שליחה בוואטסאפ

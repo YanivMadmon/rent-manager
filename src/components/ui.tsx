@@ -4,10 +4,10 @@ import Link from "next/link";
 // Shared look for the landlord screens. Every tap target is at least 44px tall.
 
 export const buttonPrimary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60";
 
 export const buttonSecondary =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line-strong bg-surface px-4 text-sm font-medium text-ink hover:bg-sunken disabled:opacity-60";
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-line-strong bg-surface px-4 text-sm font-medium text-ink hover:bg-sunken disabled:opacity-60";
 
 export type Tone = "neutral" | "info" | "good" | "warn" | "bad";
 
@@ -38,7 +38,7 @@ export function Pill({ tone = "neutral", children }: { tone?: Tone; children: Re
 // A list lives on one raised panel with hairlines between rows.
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_1px_2px_rgb(0_0_0/0.04)] ${className}`}>
+    <div className={`overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_1px_2px_rgb(0_0_0/0.04)] ${className}`}>
       {children}
     </div>
   );
@@ -55,7 +55,7 @@ export function SectionHeading({ id, children, count }: { id?: string; children:
 
 export function EmptyState({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="space-y-4 rounded-2xl border border-dashed border-line-strong px-6 py-8 text-center">
+    <div className="space-y-4 rounded-3xl border border-dashed border-line-strong px-6 py-8 text-center">
       <p className="mx-auto max-w-[40ch] text-sm text-muted">{children}</p>
       {action}
     </div>
@@ -101,4 +101,4 @@ export const PAYMENT_TONE: Record<
 
 // Form controls: 16px text so phones don't zoom in on focus.
 export const fieldClass =
-  "block min-h-11 w-full rounded-xl border border-line-strong bg-surface px-3 text-base text-ink";
+  "block min-h-11 w-full rounded-2xl border border-line-strong bg-surface px-3 text-base text-ink";
