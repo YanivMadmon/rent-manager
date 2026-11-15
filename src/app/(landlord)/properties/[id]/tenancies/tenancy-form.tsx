@@ -283,7 +283,7 @@ export function TenancyForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-blue-600 px-6 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+        className="rounded-full bg-blue-600 px-6 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
       >
         {pending ? "שומר..." : isEdit ? "שמירת שינויים" : "שמירת השכירות"}
       </button>

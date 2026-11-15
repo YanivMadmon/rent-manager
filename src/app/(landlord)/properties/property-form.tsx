@@ -32,7 +32,7 @@ export function PropertyForm({ onDone }: { onDone?: () => void }) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-blue-600 px-5 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          className="rounded-full bg-blue-600 px-5 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
         >
           {pending ? "שומר..." : "הוספת נכס"}
         </button>

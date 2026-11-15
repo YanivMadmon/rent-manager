@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 /*
- * "Check paper": a cool, faintly green canvas like a cheque book's security
- * paper, white panels on top, and a single fountain-pen ink blue for anything
- * you can press. Status colours (green/amber/red) are reserved for statuses.
+ * "Warm home": Pantone's 2026 Cloud Dancer as the canvas, warm off-white
+ * panels, and one deep teal for anything you can press. It should feel like
+ * looking after a home, not a bank. Status colours (green/amber/red) are
+ * reserved for statuses.
  */
 :root {
-  --canvas: #f2f4f3;
-  --surface: #ffffff;
-  --sunken: #e8ecea;
-  --ink: #17201d;
-  --muted: #56625e;
-  --line: rgb(23 32 29 / 0.1);
-  --line-strong: rgb(23 32 29 / 0.18);
+  --canvas: #f0eee9;
+  --surface: #fbfaf7;
+  --sunken: #e7e3db;
+  --ink: #22302d;
+  --muted: #5f6964;
+  --line: rgb(34 48 45 / 0.1);
+  --line-strong: rgb(34 48 45 / 0.2);
 
   /* Kept for existing components that read them. */
   --background: var(--canvas);
@@ -21,13 +22,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --canvas: #0f1513;
-    --surface: #171f1c;
-    --sunken: #0b100e;
-    --ink: #e6ebe9;
-    --muted: #9aa6a2;
-    --line: rgb(230 235 233 / 0.11);
-    --line-strong: rgb(230 235 233 / 0.2);
+    --canvas: #141917;
+    --surface: #1c2321;
+    --sunken: #0f1312;
+    --ink: #ece9e3;
+    --muted: #a5ada9;
+    --line: rgb(236 233 227 / 0.11);
+    --line-strong: rgb(236 233 227 / 0.2);
   }
 }
 
@@ -41,31 +42,31 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
-  --font-sans: var(--font-plex);
+  --font-sans: var(--font-rubik);
 }
 
 /*
- * The "blue" scale is re-tinted to the ink hue, so every screen that uses
- * bg-blue-600 for its primary action picks up the same accent.
+ * The "blue" scale is re-tinted to the teal accent, so every screen that uses
+ * bg-blue-600 for its primary action picks up the same colour.
  */
 @theme {
-  --color-blue-50: oklch(0.97 0.015 268);
-  --color-blue-100: oklch(0.93 0.035 268);
-  --color-blue-200: oklch(0.86 0.065 268);
-  --color-blue-300: oklch(0.78 0.1 268);
-  --color-blue-400: oklch(0.72 0.12 268);
-  --color-blue-500: oklch(0.56 0.15 268);
-  --color-blue-600: oklch(0.44 0.15 268);
-  --color-blue-700: oklch(0.38 0.14 268);
-  --color-blue-800: oklch(0.32 0.12 268);
-  --color-blue-900: oklch(0.27 0.09 268);
-  --color-blue-950: oklch(0.21 0.06 268);
+  --color-blue-50: oklch(0.97 0.014 188);
+  --color-blue-100: oklch(0.93 0.03 188);
+  --color-blue-200: oklch(0.86 0.055 188);
+  --color-blue-300: oklch(0.79 0.075 188);
+  --color-blue-400: oklch(0.74 0.09 188);
+  --color-blue-500: oklch(0.58 0.095 188);
+  --color-blue-600: oklch(0.47 0.08 188);
+  --color-blue-700: oklch(0.41 0.072 188);
+  --color-blue-800: oklch(0.35 0.06 188);
+  --color-blue-900: oklch(0.29 0.045 188);
+  --color-blue-950: oklch(0.22 0.03 188);
 }
 
 body {
   background: var(--canvas);
   color: var(--ink);
-  font-family: var(--font-plex), Arial, Helvetica, sans-serif;
+  font-family: var(--font-rubik), Arial, Helvetica, sans-serif;
   line-height: 1.55;
 }
 

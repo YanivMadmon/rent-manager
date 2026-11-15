@@ -65,7 +65,7 @@ export function InspectionForm({ token, rooms }: { token: string; rooms: string[
         <button
           type="submit"
           disabled={pending}
-          className="w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+          className="w-full rounded-full bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
         >
           {pending ? "שולח..." : "אישור הפרוטוקול"}
         </button>
