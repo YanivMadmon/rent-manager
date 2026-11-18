@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { signOut } from "@/app/auth/actions";
 import { LogOutIcon } from "@/components/icons";
+import { Logo } from "@/components/logo";
 
 // The header shell is static; the session read streams in behind Suspense.
 // Each page must still call requireUser() itself.
@@ -12,8 +13,13 @@ export default function LandlordLayout({ children }: LayoutProps<"/">) {
       <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-4 px-4">
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="flex min-h-11 items-center text-base font-semibold">
-              ניהול שכירות
+            <Link
+              href="/dashboard"
+              aria-label="ניהול שכירות, למסך הראשי"
+              title="ניהול שכירות"
+              className="-ms-1 flex min-h-11 min-w-11 items-center justify-center rounded-lg px-1 hover:bg-sunken"
+            >
+              <Logo className="h-10 w-10" />
             </Link>
           </div>
           <Suspense fallback={null}>
