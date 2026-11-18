@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PAYMENT_METHOD_LABEL } from "@/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import { reportPayment, requestProofUpload } from "./actions";
+import { resizeImage } from "@/lib/resize-image";
 
 const BUCKET = "payment-proofs";
 
@@ -14,7 +15,8 @@ export function ReportForm({ token }: { token: string }) {
   const [fileName, setFileName] = useState<string>();
   const [pending, startTransition] = useTransition();
 
-  async function uploadProof(file: File) {
+  async function uploadProof(original: File) {
+    const file = await resizeImage(original);
     const ticket = await requestProofUpload(token, file.type, file.size);
     if ("error" in ticket) return ticket;
 

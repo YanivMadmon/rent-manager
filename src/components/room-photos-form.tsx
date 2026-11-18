@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { ROOM_SUGGESTIONS } from "@/lib/rooms";
 import { createClient } from "@/lib/supabase/client";
+import { resizeImage } from "@/lib/resize-image";
 
 const BUCKET = "inspection-photos";
 const MAX_PHOTOS_PER_UPLOAD = 20;
@@ -40,8 +41,9 @@ export function RoomPhotosForm({
 
     startTransition(async () => {
       const paths: string[] = [];
-      for (const [i, file] of files.entries()) {
+      for (const [i, original] of files.entries()) {
         setProgress(`מעלה ${i + 1} מתוך ${files.length}`);
+        const file = await resizeImage(original);
         const ticket = await requestUpload(file.type, file.size);
         if ("error" in ticket) {
           setProgress(undefined);

@@ -18,13 +18,23 @@ export async function TenancyFiles({ tenancyId }: { tenancyId: string }) {
   // files download under their own name; PDFs and images open in the browser.
   const admin = createAdminClient().storage.from(FILES_BUCKET);
   const urls = new Map<string, string>();
-  await Promise.all(
-    documents.map(async (d) => {
-      const inline = d.mimeType === "application/pdf" || d.mimeType.startsWith("image/");
-      const { data } = await admin.createSignedUrl(d.path, 60 * 60, inline ? undefined : { download: d.name });
-      if (data) urls.set(d.id, data.signedUrl);
-    }),
-  );
+  const isInline = (d: { mimeType: string }) => d.mimeType === "application/pdf" || d.mimeType.startsWith("image/");
+  const inline = documents.filter(isInline);
+  await Promise.all([
+    // PDFs and images: one request for all of them.
+    inline.length > 0 &&
+      admin.createSignedUrls(inline.map((d) => d.path), 60 * 60).then(({ data }) => {
+        const byPath = new Map(data?.map((u) => [u.path, u.signedUrl]));
+        inline.forEach((d) => byPath.get(d.path) && urls.set(d.id, byPath.get(d.path)!));
+      }),
+    // Word files each need their own URL so they download under their name.
+    ...documents
+      .filter((d) => !isInline(d))
+      .map(async (d) => {
+        const { data } = await admin.createSignedUrl(d.path, 60 * 60, { download: d.name });
+        if (data) urls.set(d.id, data.signedUrl);
+      }),
+  ]);
 
   return (
     <div className="space-y-4">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { UtilityType } from "@/generated/prisma/enums";
 import { createClient } from "@/lib/supabase/client";
 import { requestUtilityUpload, saveUtilityProof } from "./utility-actions";
+import { resizeImage } from "@/lib/resize-image";
 
 const BUCKET = "utility-proofs";
 
@@ -23,9 +24,10 @@ export function UtilityUpload({
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
 
-  function upload(file: File) {
+  function upload(original: File) {
     setError(undefined);
     startTransition(async () => {
+      const file = await resizeImage(original);
       const ticket = await requestUtilityUpload(token, type, file.type, file.size);
       if ("error" in ticket) return setError(ticket.error);
 

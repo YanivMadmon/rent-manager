@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { addFile, requestFileUpload } from "./actions";
 import { CloseIcon, PaperclipIcon } from "@/components/icons";
 import { buttonSecondary } from "@/components/ui";
+import { resizeImage } from "@/lib/resize-image";
 
 const BUCKET = "tenancy-files";
 const ACCEPT =
@@ -33,11 +34,12 @@ export function AddFileButton({ tenancyId }: { tenancyId: string }) {
   }
 
   function submit(form: FormData) {
-    const file = form.get("file");
-    if (!(file instanceof File) || file.size === 0) return setError("יש לבחור קובץ");
+    const picked = form.get("file");
+    if (!(picked instanceof File) || picked.size === 0) return setError("יש לבחור קובץ");
     setError(undefined);
 
     startTransition(async () => {
+      const file = await resizeImage(picked);
       const ticket = await requestFileUpload(tenancyId, file.type, file.size);
       if ("error" in ticket) return setError(ticket.error);
 

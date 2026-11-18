@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { reportIssue, requestIssuePhotoUpload } from "./issue-actions";
+import { resizeImage } from "@/lib/resize-image";
 
 const BUCKET = "issue-photos";
 const MAX_PHOTOS = 5;
@@ -18,7 +19,8 @@ export function IssueForm({ token }: { token: string }) {
   const [sent, setSent] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  async function uploadPhoto(file: File) {
+  async function uploadPhoto(original: File) {
+    const file = await resizeImage(original);
     const ticket = await requestIssuePhotoUpload(token, file.type, file.size);
     if ("error" in ticket) return ticket;
 

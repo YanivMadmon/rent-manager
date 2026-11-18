@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { confirmPhotoUpload, requestPhotoUpload } from "./actions";
 import { CameraIcon } from "@/components/icons";
 import { buttonSecondary } from "@/components/ui";
+import { resizeImage } from "@/lib/resize-image";
 
 const BUCKET = "property-photos";
 
@@ -16,7 +17,8 @@ export function PhotoUploader({ propertyId }: { propertyId: string }) {
   const [errors, setErrors] = useState<string[]>([]);
   const [, startTransition] = useTransition();
 
-  async function uploadOne(file: File): Promise<string | null> {
+  async function uploadOne(original: File): Promise<string | null> {
+    const file = await resizeImage(original);
     const ticket = await requestPhotoUpload(propertyId, file.type, file.size);
     if ("error" in ticket) return `${file.name}: ${ticket.error}`;
 
