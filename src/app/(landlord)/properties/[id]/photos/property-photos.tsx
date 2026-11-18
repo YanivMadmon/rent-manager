@@ -3,9 +3,12 @@ import { createAdminClient, PHOTO_BUCKET } from "@/lib/supabase/admin";
 import { PhotoUploader } from "./photo-uploader";
 import { deletePhoto } from "./actions";
 import { PhotoGallery } from "./photo-gallery";
+import { Yad2Button } from "./yad2-button";
+import type { Property } from "@/generated/prisma/client";
 
 // Caller must have verified that the property belongs to the current landlord.
-export async function PropertyPhotos({ propertyId }: { propertyId: string }) {
+export async function PropertyPhotos({ property, rent }: { property: Property; rent: number | null }) {
+  const propertyId = property.id;
   const photos = await prisma.propertyPhoto.findMany({
     where: { propertyId },
     orderBy: { createdAt: "asc" },
@@ -25,7 +28,17 @@ export async function PropertyPhotos({ propertyId }: { propertyId: string }) {
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-lg font-semibold">תמונות</h2>
-        <PhotoUploader propertyId={propertyId} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Yad2Button
+            listing={property}
+            rent={rent}
+            photos={photos.flatMap((p, i) => {
+              const url = urls.get(p.path);
+              return url ? [{ url, name: `${property.address}-${i + 1}.${p.path.split(".").pop()}` }] : [];
+            })}
+          />
+          <PhotoUploader propertyId={propertyId} />
+        </div>
       </div>
 
       {photos.length === 0 ? (

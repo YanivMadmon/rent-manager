@@ -75,6 +75,34 @@ enum UtilityType {
   GAS
 }
 
+enum PropertyType {
+  APARTMENT
+  GARDEN_APARTMENT
+  PENTHOUSE
+  DUPLEX
+  STUDIO
+  HOUSE
+  UNIT
+}
+
+enum Furnishing {
+  NONE
+  PARTIAL
+  FULL
+}
+
+enum PropertyFeature {
+  PARKING
+  ELEVATOR
+  BALCONY
+  SAFE_ROOM
+  STORAGE
+  AIR_CONDITIONING
+  BARS
+  ACCESSIBLE
+  PETS_ALLOWED
+}
+
 enum DocumentCategory {
   CONTRACT
   GUARANTEE
@@ -104,16 +132,26 @@ model User {
 }
 
 model Property {
-  id        String          @id @default(cuid())
-  ownerId   String
-  owner     User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  address   String
-  city      String
-  notes     String?
-  createdAt DateTime        @default(now())
-  tenancies Tenancy[]
-  documents Document[]
-  photos    PropertyPhoto[]
+  id           String            @id @default(cuid())
+  ownerId      String
+  owner        User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  address      String
+  city         String
+  notes        String?
+  /// Fixed details for listings. All optional.
+  propertyType PropertyType?
+  rooms        Float?
+  sizeSqm      Int?
+  floor        Int?
+  totalFloors  Int?
+  furnished    Furnishing?
+  features     PropertyFeature[] @default([])
+  /// The landlord's own wording for rental ads, kept for next time.
+  listingText  String?
+  createdAt    DateTime          @default(now())
+  tenancies    Tenancy[]
+  documents    Document[]
+  photos       PropertyPhoto[]
 
   @@index([ownerId])
 }

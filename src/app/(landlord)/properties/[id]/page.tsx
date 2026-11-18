@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatILS, TENANCY_STATUS_LABEL } from "@/lib/format";
+import { detailsSummary, FEATURE_LABEL } from "@/lib/property-details";
 import { BackLink, buttonPrimary, Chevron, EmptyState, Panel, Pill, SectionHeading } from "@/components/ui";
 import { CurrentTenancy } from "./current-tenancy";
+import { EditPropertyButton } from "./edit-property-button";
 import { PropertyPhotos } from "./photos/property-photos";
 import { TenancyFiles } from "./tenancies/[tenancyId]/files/tenancy-files";
 import { TenancyIssues } from "./tenancies/[tenancyId]/issues/tenancy-issues";
@@ -43,13 +45,26 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
   return (
     <div className="space-y-10">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">{property.address}</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl font-semibold">{property.address}</h1>
+          <EditPropertyButton propertyId={property.id} initial={property} />
+        </div>
         <p className="text-muted">{property.city}</p>
+        {detailsSummary(property) && <p className="pt-1 text-sm">{detailsSummary(property)}</p>}
+        {property.features.length > 0 && (
+          <ul className="flex flex-wrap gap-1.5 pt-1">
+            {property.features.map((f) => (
+              <li key={f} className="rounded-full bg-sunken px-2.5 py-0.5 text-xs text-muted">
+                {FEATURE_LABEL[f]}
+              </li>
+            ))}
+          </ul>
+        )}
         {property.notes && <p className="max-w-[65ch] pt-2 text-sm">{property.notes}</p>}
       </div>
 
       <Suspense fallback={<p className="text-muted">טוען תמונות...</p>}>
-        <PropertyPhotos propertyId={property.id} />
+        <PropertyPhotos property={property} rent={(current ?? property.tenancies[0])?.monthlyRent ?? null} />
       </Suspense>
 
       {current ? (

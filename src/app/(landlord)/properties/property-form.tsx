@@ -1,67 +1,177 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { createProperty, type PropertyFormState } from "./actions";
+import type { Furnishing, PropertyFeature, PropertyType } from "@/generated/prisma/enums";
+import { buttonPrimary, fieldClass } from "@/components/ui";
+import {
+  FEATURE_LABEL,
+  FURNISHING_LABEL,
+  PROPERTY_TYPE_LABEL,
+  type PropertyDetails,
+} from "@/lib/property-details";
+import type { PropertyFormState } from "./actions";
 
-const inputClass =
-  "w-full rounded-lg border border-line-strong bg-transparent px-3 py-2";
+export type PropertyValues = PropertyDetails & { address: string; city: string; notes: string | null };
 
-export function PropertyForm({ onDone }: { onDone?: () => void }) {
-  const [state, formAction, pending] = useActionState<PropertyFormState, FormData>(
-    createProperty,
-    {},
-  );
+// Used to add a property and to edit one. Only the address and city are
+// required; the details help when publishing the flat for rent.
+export function PropertyForm({
+  action,
+  initial,
+  submitLabel,
+  onDone,
+}: {
+  action: (prev: PropertyFormState, formData: FormData) => Promise<PropertyFormState>;
+  initial?: PropertyValues;
+  submitLabel: string;
+  onDone?: () => void;
+}) {
+  const [state, formAction, pending] = useActionState<PropertyFormState, FormData>(action, {});
   const formRef = useRef<HTMLFormElement>(null);
+  const hasDetails = Boolean(
+    initial &&
+      (initial.propertyType ||
+        initial.rooms !== null ||
+        initial.sizeSqm !== null ||
+        initial.floor !== null ||
+        initial.furnished ||
+        initial.features.length > 0),
+  );
 
   useEffect(() => {
     if (state.ok) {
-      formRef.current?.reset();
+      if (!initial) formRef.current?.reset();
       onDone?.();
     }
-  }, [state, onDone]);
+  }, [state, onDone, initial]);
+
+  const errors = state.errors ?? {};
 
   return (
-    <form ref={formRef} action={formAction} className="grid gap-4 sm:grid-cols-2">
-      <Field label="כתובת" name="address" error={state.errors?.address} required />
-      <Field label="עיר" name="city" error={state.errors?.city} required />
-      <label className="space-y-1 sm:col-span-2">
-        <span className="text-sm font-medium">הערות</span>
-        <textarea name="notes" rows={2} className={inputClass} />
-      </label>
-      <div className="sm:col-span-2">
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-full bg-blue-600 px-5 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-        >
-          {pending ? "שומר..." : "הוספת נכס"}
-        </button>
+    <form ref={formRef} action={formAction} className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="כתובת" error={errors.address}>
+          <input name="address" required defaultValue={initial?.address} className={fieldClass} />
+        </Field>
+        <Field label="עיר" error={errors.city}>
+          <input name="city" required defaultValue={initial?.city} className={fieldClass} />
+        </Field>
       </div>
+
+      <details open={hasDetails || Object.keys(errors).some((k) => k !== "address" && k !== "city")} className="group space-y-4">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-400">
+          <span className="transition-transform group-open:rotate-90" aria-hidden="true">
+            ‹
+          </span>
+          פרטי הדירה (רשות)
+        </summary>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="סוג הנכס" error={errors.propertyType}>
+            <select name="propertyType" defaultValue={initial?.propertyType ?? ""} className={fieldClass}>
+              <option value="">לא צוין</option>
+              {(Object.keys(PROPERTY_TYPE_LABEL) as PropertyType[]).map((type) => (
+                <option key={type} value={type}>
+                  {PROPERTY_TYPE_LABEL[type]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="חדרים" error={errors.rooms}>
+            <input
+              name="rooms"
+              type="number"
+              inputMode="decimal"
+              step="0.5"
+              min="1"
+              max="20"
+              defaultValue={initial?.rooms ?? ""}
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="גודל (מ״ר)" error={errors.sizeSqm}>
+            <input
+              name="sizeSqm"
+              type="number"
+              inputMode="numeric"
+              min="5"
+              max="2000"
+              defaultValue={initial?.sizeSqm ?? ""}
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="ריהוט" error={errors.furnished}>
+            <select name="furnished" defaultValue={initial?.furnished ?? ""} className={fieldClass}>
+              <option value="">לא צוין</option>
+              {(Object.keys(FURNISHING_LABEL) as Furnishing[]).map((f) => (
+                <option key={f} value={f}>
+                  {FURNISHING_LABEL[f]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="קומה (0 לקרקע)" error={errors.floor}>
+            <input
+              name="floor"
+              type="number"
+              inputMode="numeric"
+              min="-5"
+              max="200"
+              defaultValue={initial?.floor ?? ""}
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="קומות בבניין" error={errors.totalFloors}>
+            <input
+              name="totalFloors"
+              type="number"
+              inputMode="numeric"
+              min="0"
+              max="200"
+              defaultValue={initial?.totalFloors ?? ""}
+              className={fieldClass}
+            />
+          </Field>
+        </div>
+
+        <fieldset className="space-y-2">
+          <legend className="text-sm text-muted">מה יש בדירה</legend>
+          <div className="grid grid-cols-2 gap-x-4 sm:grid-cols-3">
+            {(Object.keys(FEATURE_LABEL) as PropertyFeature[]).map((feature) => (
+              <label key={feature} className="flex min-h-11 items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="features"
+                  value={feature}
+                  defaultChecked={initial?.features.includes(feature)}
+                  className="h-4 w-4"
+                />
+                {FEATURE_LABEL[feature]}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      </details>
+
+      <Field label="הערות" error={errors.notes}>
+        <textarea name="notes" rows={2} maxLength={1000} defaultValue={initial?.notes ?? ""} className={`${fieldClass} py-2`} />
+      </Field>
+
+      {state.formError && <p className="text-sm text-red-700 dark:text-red-400">{state.formError}</p>}
+
+      <button type="submit" disabled={pending} className={`${buttonPrimary} w-full sm:w-auto`}>
+        {pending ? "שומר..." : submitLabel}
+      </button>
     </form>
   );
 }
 
-function Field({
-  label,
-  name,
-  error,
-  required,
-}: {
-  label: string;
-  name: string;
-  error?: string;
-  required?: boolean;
-}) {
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
-    <label className="space-y-1">
+    <label className="block space-y-1">
       <span className="text-sm font-medium">{label}</span>
-      <input
-        name={name}
-        required={required}
-        aria-invalid={Boolean(error)}
-        className={inputClass}
-      />
-      {error && <span className="text-sm text-red-600">{error}</span>}
+      {children}
+      {error && <span className="block text-sm text-red-700 dark:text-red-400">{error}</span>}
     </label>
   );
 }

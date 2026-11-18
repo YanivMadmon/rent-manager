@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { createProperty } from "./actions";
 import { PropertyForm } from "./property-form";
 import { CloseIcon, PlusIcon } from "@/components/icons";
 
@@ -25,7 +26,7 @@ export function AddPropertyButton() {
         ref={dialogRef}
         aria-labelledby="add-property-title"
         onClick={(e) => e.target === dialogRef.current && close()}
-        className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-line bg-surface p-0 text-ink backdrop:bg-black/40"
+        className="m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg rounded-2xl border border-line bg-surface p-0 text-ink backdrop:bg-black/40"
       >
         <div className="space-y-4 p-6">
           <div className="flex items-center justify-between">
@@ -41,7 +42,7 @@ export function AddPropertyButton() {
               <CloseIcon />
             </button>
           </div>
-          <PropertyForm onDone={close} />
+          <PropertyForm action={createProperty} submitLabel="הוספת נכס" onDone={close} />
         </div>
       </dialog>
     </>
