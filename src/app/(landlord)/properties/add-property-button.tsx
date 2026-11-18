@@ -17,7 +17,7 @@ export function AddPropertyButton() {
         aria-label="הוספת נכס"
         title="הוספת נכס"
         onClick={() => dialogRef.current?.showModal()}
-        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-[0_4px_16px_rgb(0_0_0/0.07)] hover:bg-blue-700 md:bottom-8 md:left-8"
+        className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] left-4 z-30 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-[0_4px_16px_rgb(0_0_0/0.07)] hover:bg-blue-700 md:left-8"
       >
         <PlusIcon className="h-7 w-7" />
       </button>

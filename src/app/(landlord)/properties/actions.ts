@@ -12,6 +12,14 @@ const optionalNumber = (schema: z.ZodNumber) =>
     .transform((s) => (s === "" ? null : Number(s)))
     .pipe(schema.nullable());
 
+// Shekels in the form, agorot in the database.
+// Agorot are stored as 32-bit integers, which tops out just above 21 million shekels.
+const optionalShekels = optionalNumber(
+  z.number({ message: "סכום לא תקין" }).min(0, "סכום לא תקין").max(20_000_000, "סכום גבוה מדי"),
+).transform(
+  (n) => (n === null ? null : Math.round(n * 100)),
+);
+
 const PropertySchema = z
   .object({
     address: z.string().trim().min(2, "יש להזין כתובת"),
@@ -35,6 +43,14 @@ const PropertySchema = z
     floor: optionalNumber(z.number({ message: "קומה לא תקינה" }).int("קומה לא תקינה").min(-5).max(200)),
     totalFloors: optionalNumber(z.number({ message: "מספר קומות לא תקין" }).int().min(0).max(200)),
     furnished: z.enum(["NONE", "PARTIAL", "FULL", ""]).transform((s) => (s ? s : null)),
+    purchasePrice: optionalShekels,
+    purchaseCosts: optionalShekels,
+    equity: optionalShekels,
+    mortgageMonthly: optionalShekels,
+    purchaseDate: z
+      .string()
+      .regex(/^(\d{4}-\d{2}-\d{2})?$/, "תאריך לא תקין")
+      .transform((s) => (s ? new Date(`${s}T00:00:00Z`) : null)),
     features: z.array(
       z.enum([
         "PARKING",
@@ -74,6 +90,11 @@ function parse(formData: FormData) {
     floor: text("floor"),
     totalFloors: text("totalFloors"),
     furnished: text("furnished"),
+    purchasePrice: text("purchasePrice"),
+    purchaseCosts: text("purchaseCosts"),
+    equity: text("equity"),
+    mortgageMonthly: text("mortgageMonthly"),
+    purchaseDate: text("purchaseDate"),
     features: [...new Set(formData.getAll("features").map(String))],
   });
   if (parsed.success) return { data: parsed.data };
@@ -94,7 +115,7 @@ export async function createProperty(
   if (!data) return { errors };
 
   await prisma.property.create({ data: { ...data, ownerId: user.id } });
-  revalidatePath("/properties");
+  revalidatePath("/dashboard");
   return { ok: true };
 }
 
@@ -113,7 +134,7 @@ export async function updateProperty(
   });
   if (count === 0) return { formError: "הנכס לא נמצא" };
 
-  revalidatePath("/properties");
+  revalidatePath("/dashboard");
   revalidatePath(`/properties/${propertyId}`);
   return { ok: true };
 }

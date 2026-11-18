@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { signOut } from "@/app/auth/actions";
-import { MainNav, NavLinks } from "./nav";
 import { LogOutIcon } from "@/components/icons";
 
 // The header shell is static; the session read streams in behind Suspense.
@@ -16,22 +15,16 @@ export default function LandlordLayout({ children }: LayoutProps<"/">) {
             <Link href="/dashboard" className="flex min-h-11 items-center text-base font-semibold">
               ניהול שכירות
             </Link>
-            <Suspense fallback={<NavLinks variant="top" pathname={null} />}>
-              <MainNav variant="top" />
-            </Suspense>
           </div>
           <Suspense fallback={null}>
             <UserMenu />
           </Suspense>
         </div>
       </header>
-      {/* Bottom padding keeps the last row clear of the phone tab bar. */}
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-12">
+      {/* Bottom padding keeps the last row clear of the floating add button. */}
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))]">
         {children}
       </main>
-      <Suspense fallback={<NavLinks variant="bottom" pathname={null} />}>
-        <MainNav variant="bottom" />
-      </Suspense>
     </div>
   );
 }

@@ -182,6 +182,5 @@ export async function closeTenancy(tenancyId: string): Promise<{ error?: string 
 
   refresh(tenancy.propertyId, tenancyId);
   revalidatePath("/dashboard");
-  revalidatePath("/properties");
-  redirect(`/properties/${tenancy.propertyId}`);
+    redirect(`/properties/${tenancy.propertyId}`);
 }

@@ -8,6 +8,7 @@ import { detailsSummary, FEATURE_LABEL } from "@/lib/property-details";
 import { BackLink, buttonPrimary, Chevron, EmptyState, Panel, Pill, SectionHeading } from "@/components/ui";
 import { CurrentTenancy } from "./current-tenancy";
 import { EditPropertyButton } from "./edit-property-button";
+import { PropertyFinances } from "./expenses/property-finances";
 import { PropertyPhotos } from "./photos/property-photos";
 import { TenancyFiles } from "./tenancies/[tenancyId]/files/tenancy-files";
 import { TenancyIssues } from "./tenancies/[tenancyId]/issues/tenancy-issues";
@@ -16,7 +17,7 @@ import { TenancyUtilities } from "./tenancies/[tenancyId]/utilities/tenancy-util
 export default function PropertyPage({ params }: PageProps<"/properties/[id]">) {
   return (
     <div className="space-y-2">
-      <BackLink href="/properties">כל הנכסים</BackLink>
+      <BackLink href="/dashboard">למסך הראשי</BackLink>
       <Suspense fallback={<p className="text-muted">טוען נכס...</p>}>
         <PropertyDetails params={params} />
       </Suspense>
@@ -31,6 +32,7 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
   const property = await prisma.property.findFirst({
     where: { id, ownerId: user.id },
     include: {
+      expenses: { orderBy: { createdAt: "asc" } },
       tenancies: {
         orderBy: { startDate: "desc" },
         include: { parties: { orderBy: { id: "asc" } } },
@@ -66,6 +68,8 @@ async function PropertyDetails({ params }: Pick<PageProps<"/properties/[id]">, "
       <Suspense fallback={<p className="text-muted">טוען תמונות...</p>}>
         <PropertyPhotos property={property} rent={(current ?? property.tenancies[0])?.monthlyRent ?? null} />
       </Suspense>
+
+      <PropertyFinances property={property} />
 
       {current ? (
         <CurrentTenancy

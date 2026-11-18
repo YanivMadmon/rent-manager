@@ -75,6 +75,11 @@ enum UtilityType {
   GAS
 }
 
+enum ExpenseFrequency {
+  MONTHLY
+  YEARLY
+}
+
 enum PropertyType {
   APARTMENT
   GARDEN_APARTMENT
@@ -132,32 +137,52 @@ model User {
 }
 
 model Property {
-  id           String            @id @default(cuid())
-  ownerId      String
-  owner        User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  address      String
-  city         String
-  notes        String?
+  id              String            @id @default(cuid())
+  ownerId         String
+  owner           User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  address         String
+  city            String
+  notes           String?
   /// Fixed details for listings. All optional.
-  propertyType PropertyType?
-  rooms        Float?
-  sizeSqm      Int?
-  floor        Int?
-  totalFloors  Int?
-  furnished    Furnishing?
-  features     PropertyFeature[] @default([])
+  propertyType    PropertyType?
+  rooms           Float?
+  sizeSqm         Int?
+  floor           Int?
+  totalFloors     Int?
+  furnished       Furnishing?
+  features        PropertyFeature[] @default([])
   /// The landlord's own wording for rental ads, kept for next time.
-  listingText  String?
-  createdAt    DateTime          @default(now())
-  tenancies    Tenancy[]
-  documents    Document[]
-  photos       PropertyPhoto[]
+  listingText     String?
+  /// What the property cost, for yield. Money in agorot; all optional.
+  purchasePrice   Int?
+  purchaseDate    DateTime?         @db.Date
+  purchaseCosts   Int?
+  equity          Int?
+  mortgageMonthly Int?
+  createdAt       DateTime          @default(now())
+  expenses        PropertyExpense[]
+  tenancies       Tenancy[]
+  documents       Document[]
+  photos          PropertyPhoto[]
 
   @@index([ownerId])
 }
 
 /// A photo in the private "property-photos" storage bucket.
 /// Path layout: <ownerId>/<propertyId>/<uuid>.<ext>
+/// A recurring cost of owning the property, e.g. building committee or insurance.
+model PropertyExpense {
+  id         String           @id @default(cuid())
+  propertyId String
+  property   Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name       String
+  amount     Int // agorot
+  frequency  ExpenseFrequency
+  createdAt  DateTime         @default(now())
+
+  @@index([propertyId])
+}
+
 model PropertyPhoto {
   id         String   @id @default(cuid())
   propertyId String

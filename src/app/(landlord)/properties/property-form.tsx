@@ -11,7 +11,18 @@ import {
 } from "@/lib/property-details";
 import type { PropertyFormState } from "./actions";
 
-export type PropertyValues = PropertyDetails & { address: string; city: string; notes: string | null };
+export type PropertyValues = PropertyDetails & {
+  address: string;
+  city: string;
+  notes: string | null;
+  purchasePrice: number | null;
+  purchaseDate: Date | null;
+  purchaseCosts: number | null;
+  equity: number | null;
+  mortgageMonthly: number | null;
+};
+
+const shekels = (agorot: number | null | undefined) => (agorot === null || agorot === undefined ? "" : agorot / 100);
 
 // Used to add a property and to edit one. Only the address and city are
 // required; the details help when publishing the flat for rent.
@@ -151,6 +162,37 @@ export function PropertyForm({
             ))}
           </div>
         </fieldset>
+      </details>
+
+      <details
+        open={Boolean(initial?.purchasePrice) || ["purchasePrice", "purchaseCosts", "equity", "mortgageMonthly", "purchaseDate"].some((k) => k in errors)}
+        className="group space-y-4"
+      >
+        <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-400">
+          <span className="transition-transform group-open:rotate-90" aria-hidden="true">
+            ‹
+          </span>
+          נתונים כספיים (רשות)
+        </summary>
+        <p className="text-sm text-muted">משמשים לחישוב הרווח והתשואה במסך הראשי.</p>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="מחיר קנייה (₪)" error={errors.purchasePrice}>
+            <input name="purchasePrice" type="number" inputMode="numeric" min="0" defaultValue={shekels(initial?.purchasePrice)} className={fieldClass} />
+          </Field>
+          <Field label="תאריך קנייה" error={errors.purchaseDate}>
+            <input name="purchaseDate" type="date" defaultValue={initial?.purchaseDate?.toISOString().slice(0, 10) ?? ""} className={fieldClass} />
+          </Field>
+          <Field label="עלויות נלוות (₪)" error={errors.purchaseCosts}>
+            <input name="purchaseCosts" type="number" inputMode="numeric" min="0" defaultValue={shekels(initial?.purchaseCosts)} className={fieldClass} />
+          </Field>
+          <Field label="הון עצמי (₪)" error={errors.equity}>
+            <input name="equity" type="number" inputMode="numeric" min="0" defaultValue={shekels(initial?.equity)} className={fieldClass} />
+          </Field>
+          <Field label="החזר משכנתא לחודש (₪)" error={errors.mortgageMonthly}>
+            <input name="mortgageMonthly" type="number" inputMode="numeric" min="0" defaultValue={shekels(initial?.mortgageMonthly)} className={fieldClass} />
+          </Field>
+        </div>
+        <p className="text-xs text-muted">עלויות נלוות: מס רכישה, עורך דין, תיווך ושיפוץ ראשוני.</p>
       </details>
 
       <Field label="הערות" error={errors.notes}>
